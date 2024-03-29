@@ -1,16 +1,43 @@
-import { NestFactory } from '@nestjs/core';
+import { ClassSerializerInterceptor, ValidationPipe } from '@nestjs/common';
+import { NestFactory, Reflector } from '@nestjs/core';
 import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
-import { AppModule } from './app.module';
+import helmet from 'helmet';
+import { Logger, LoggerErrorInterceptor } from 'nestjs-pino';
+import { AppModule } from './app/app.module';
+import metadata from './metadata';
 
 async function bootstrap() {
-  const app = await NestFactory.create(AppModule);
+  const app = await NestFactory.create(AppModule, { bufferLogs: true });
+
+  // Use helmet middleware
+  app.use(helmet());
+
+  // Use global validation pipe
+  app.useGlobalPipes(
+    new ValidationPipe({
+      whitelist: true,
+      transform: true,
+    }),
+  );
+
+  // Use global class serializer
+  app.useGlobalInterceptors(
+    new ClassSerializerInterceptor(app.get(Reflector), {
+      excludeExtraneousValues: true,
+    }),
+  );
+
+  // // Use global logging error interceptor
+  app.useGlobalInterceptors(new LoggerErrorInterceptor());
+
+  app.useLogger(app.get(Logger));
 
   // Swagger config
+  await SwaggerModule.loadPluginMetadata(metadata);
   const config = new DocumentBuilder()
     .setTitle('Best Practice API')
     .addTag('posts')
     .build();
-
   const document = SwaggerModule.createDocument(app, config);
   SwaggerModule.setup('docs', app, document);
 
