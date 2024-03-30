@@ -10,6 +10,7 @@ export class CommentsRepo {
   createComment(args: {
     data: Omit<Prisma.CommentCreateInput, 'post'>;
     postConnect: Prisma.PostWhereUniqueInput;
+    authorConnect?: Prisma.UserWhereUniqueInput;
   }) {
     const orgId = getOrgIdFromStore();
     return this.prisma.comment.create({
@@ -18,6 +19,14 @@ export class CommentsRepo {
         post: {
           connect: { ...args.postConnect, ...(orgId && { orgId }) },
         },
+        ...(args.authorConnect && {
+          author: {
+            connect: args.authorConnect,
+          },
+        }),
+      },
+      include: {
+        author: true,
       },
     });
   }
@@ -38,6 +47,9 @@ export class CommentsRepo {
         }),
       },
       data: args.data,
+      include: {
+        author: true,
+      },
     });
   }
 

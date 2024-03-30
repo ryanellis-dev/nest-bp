@@ -20,7 +20,7 @@ export class Post {
     return this._count.comments;
   }
 
-  constructor(data: Partial<Post>) {
+  constructor(data: Omit<Post, 'commentCount'>) {
     Object.assign(this, data);
   }
 }

@@ -17,10 +17,14 @@ export class CommentsService {
     postId: string,
     data: CreateCommentDto,
   ): Promise<Comment> {
+    const user = getUserOrThrow();
     const comment = await this.commentsRepo.createComment({
       data,
       postConnect: {
         id: postId,
+      },
+      authorConnect: {
+        id: user.id,
       },
     });
     return new Comment(comment);
@@ -36,6 +40,7 @@ export class CommentsService {
       where: {
         id: commentId,
         postId,
+        // Only allow author to update comment
         author: {
           id: user.id,
         },

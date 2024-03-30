@@ -22,6 +22,7 @@ export class PostsService {
             },
           },
         },
+        includeAuthor: true,
       }),
     );
   }
@@ -37,6 +38,7 @@ export class PostsService {
           },
         },
         data,
+        includeAuthor: true,
       }),
     );
   }
@@ -46,6 +48,7 @@ export class PostsService {
       where: {
         id,
       },
+      includeAuthor: true,
     });
     if (!post) throw new NotFoundException();
     return new Post(post);

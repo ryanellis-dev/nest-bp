@@ -7,7 +7,7 @@ import { getOrgIdFromStore } from 'src/common/utils/get-orgId';
 export class PostsRepo {
   constructor(private prisma: PrismaService) {}
 
-  createPost(args: { data: Prisma.PostCreateInput }) {
+  createPost(args: { data: Prisma.PostCreateInput; includeAuthor?: boolean }) {
     const orgId = getOrgIdFromStore();
     return this.prisma.post.create({
       data: {
@@ -21,6 +21,7 @@ export class PostsRepo {
         }),
       },
       include: {
+        author: args.includeAuthor,
         _count: { select: { comments: true } },
       },
     });
@@ -29,6 +30,7 @@ export class PostsRepo {
   updatePost(args: {
     where: Prisma.PostWhereUniqueInput;
     data: Prisma.PostUpdateInput;
+    includeAuthor?: boolean;
   }) {
     const orgId = getOrgIdFromStore();
     return this.prisma.post.update({
@@ -45,16 +47,18 @@ export class PostsRepo {
       },
       include: {
         _count: { select: { comments: true } },
+        author: args.includeAuthor,
       },
     });
   }
 
-  getPost(args: { where?: Prisma.PostWhereInput }) {
+  getPost(args: { where?: Prisma.PostWhereInput; includeAuthor?: boolean }) {
     const orgId = getOrgIdFromStore();
     return this.prisma.post.findFirst({
       where: { ...args.where, deletedAt: null, ...(orgId && { orgId }) },
       include: {
         _count: { select: { comments: { where: { deletedAt: null } } } },
+        author: args.includeAuthor,
       },
     });
   }
@@ -65,7 +69,7 @@ export class PostsRepo {
       where: { ...args.where, deletedAt: null, ...(orgId && { orgId }) },
       include: {
         _count: { select: { comments: { where: { deletedAt: null } } } },
-        ...(args.includeAuthor && { author: true }),
+        author: args.includeAuthor,
       },
     });
   }
@@ -80,6 +84,9 @@ export class PostsRepo {
             comments: {
               where: {
                 deletedAt: null,
+              },
+              include: {
+                author: true,
               },
             },
           },
