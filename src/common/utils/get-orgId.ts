@@ -1,10 +1,8 @@
-import { UnauthorizedException } from '@nestjs/common';
 import { ClsServiceManager } from 'nestjs-cls';
 import { TypedClsStore } from '../types/cls.types';
 
-export function getUserOrThrow() {
+export function getOrgIdFromStore() {
   const cls = ClsServiceManager.getClsService<TypedClsStore>();
   const user = cls.get('user');
-  if (!user) throw new UnauthorizedException();
-  return user;
+  return user?.orgId || null;
 }

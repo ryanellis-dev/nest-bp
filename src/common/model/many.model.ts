@@ -4,7 +4,7 @@ import { Expose, Type } from 'class-transformer';
 
 type Constructor<T = unknown> = new (...args: any[]) => T;
 
-export function withMany<TBase extends Constructor>(
+export function Many<TBase extends Constructor>(
   Base: TBase,
   options?: ApiPropertyOptions,
 ) {
@@ -21,9 +21,3 @@ export function withMany<TBase extends Constructor>(
 
   return mixin(Many);
 }
-
-// export class Paginated<T> extends Many<T> {
-//   @Expose() total: number;
-//   @Expose() limit: number;
-//   @Expose() offset: number;
-// }

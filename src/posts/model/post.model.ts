@@ -1,5 +1,5 @@
-import { Expose, Type } from 'class-transformer';
-import { withMany } from 'src/common/model/many.model';
+import { Exclude, Expose, Type } from 'class-transformer';
+import { Many } from 'src/common/model/many.model';
 import { User } from 'src/users/model/user.model';
 
 export class Post {
@@ -12,6 +12,7 @@ export class Post {
   @Type(() => PostAuthor)
   author: PostAuthor | null;
 
+  @Exclude()
   _count: {
     comments: number;
   };
@@ -26,4 +27,4 @@ export class Post {
 
 export class PostAuthor extends User {}
 
-export class ManyPosts extends withMany(Post) {}
+export class ManyPosts extends Many(Post) {}

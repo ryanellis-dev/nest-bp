@@ -17,6 +17,7 @@ import {
 import { AuthModule } from 'src/auth/auth.module';
 import { CommentsModule } from 'src/comments/comments.module';
 import appConfig from 'src/config/app.config';
+import { OrganisationsModule } from 'src/organisations/organisations.module';
 import { UsersModule } from 'src/users/users.module';
 import { PostsModule } from '../posts/posts.module';
 
@@ -43,6 +44,7 @@ import { PostsModule } from '../posts/posts.module';
     CommentsModule,
     UsersModule,
     AuthModule,
+    OrganisationsModule,
   ],
   providers: [
     providePrismaClientExceptionFilter({

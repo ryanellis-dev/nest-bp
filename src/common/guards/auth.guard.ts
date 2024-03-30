@@ -11,6 +11,7 @@ import { JwtService } from '@nestjs/jwt';
 import { Request } from 'express';
 import { ClsService } from 'nestjs-cls';
 import appConfig from 'src/config/app.config';
+import { UsersRepo } from 'src/users/users.repo';
 import { BYPASS_AUTH_KEY } from '../decorators/bypass-auth.decorator';
 import { AuthPayload } from '../types/auth.types';
 import { TypedClsStore } from '../types/cls.types';
@@ -18,6 +19,7 @@ import { TypedClsStore } from '../types/cls.types';
 @Injectable()
 export class AuthGuard implements CanActivate {
   constructor(
+    private usersRepo: UsersRepo,
     private jwtService: JwtService,
     private cls: ClsService<TypedClsStore>,
     private reflector: Reflector,
@@ -42,7 +44,13 @@ export class AuthGuard implements CanActivate {
         secret: this.appConf.jwtSecret,
       });
 
-      this.cls.set('user', payload);
+      const user = await this.usersRepo.getUser({
+        where: {
+          id: payload.sub,
+        },
+      });
+
+      this.cls.set('user', user);
     } catch {
       throw new UnauthorizedException();
     }

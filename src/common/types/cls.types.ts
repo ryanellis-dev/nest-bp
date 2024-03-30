@@ -1,7 +1,7 @@
 import { ClsStore } from 'nestjs-cls';
-import { AuthPayload } from './auth.types';
+import { LoggedInUser } from 'src/users/model/user.model';
 
 export interface TypedClsStore extends ClsStore {
   // Null if auth has been bypassed
-  user?: AuthPayload | null;
+  user?: LoggedInUser | null;
 }

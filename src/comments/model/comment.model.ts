@@ -1,6 +1,6 @@
 import { OmitType } from '@nestjs/swagger';
 import { Expose } from 'class-transformer';
-import { withMany } from 'src/common/model/many.model';
+import { Many } from 'src/common/model/many.model';
 
 export class Comment {
   @Expose() id: string;
@@ -20,4 +20,4 @@ export class PostComment extends OmitType(Comment, ['postId']) {
   }
 }
 
-export class ManyPostComments extends withMany(PostComment) {}
+export class ManyPostComments extends Many(PostComment) {}

@@ -7,14 +7,17 @@ import {
   Param,
   Patch,
   Post,
+  Query,
 } from '@nestjs/common';
-import { ApiTags } from '@nestjs/swagger';
+import { ApiBearerAuth, ApiTags } from '@nestjs/swagger';
 import { PrismaClientExceptionFilter } from 'nestjs-prisma';
 import { CreatePostDto } from './dto/create-post.dto';
+import { GetPostsQueryDto } from './dto/get-posts-params.dto';
 import { UpdatePostDto } from './dto/update-post.dto';
 import { PostsService } from './posts.service';
 
 @ApiTags('posts')
+@ApiBearerAuth()
 @Controller('posts')
 @Catch(PrismaClientExceptionFilter)
 export class PostsController {
@@ -36,8 +39,8 @@ export class PostsController {
   }
 
   @Get()
-  getPosts() {
-    return this.postsService.getPosts();
+  getPosts(@Query() query: GetPostsQueryDto) {
+    return this.postsService.getPosts(query);
   }
 
   @Delete('/:id')

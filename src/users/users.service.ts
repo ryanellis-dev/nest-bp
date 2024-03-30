@@ -17,6 +17,6 @@ export class UsersService {
 
   async getUsers(): Promise<ManyUsers> {
     const users = await this.usersRepo.getUsers({});
-    return { users: users.map((u) => new User(u)) };
+    return { results: users.map((u) => new User(u)) };
   }
 }

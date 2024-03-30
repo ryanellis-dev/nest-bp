@@ -23,8 +23,8 @@ export class AuthController {
     return this.authService.login(data);
   }
 
-  @ApiBearerAuth()
   @Get('/me')
+  @ApiBearerAuth()
   me() {
     return this.authService.getLoggedInUser();
   }

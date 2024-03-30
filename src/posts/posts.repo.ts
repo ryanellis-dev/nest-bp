@@ -1,14 +1,25 @@
 import { Injectable } from '@nestjs/common';
 import { Prisma } from '@prisma/client';
 import { PrismaService } from 'nestjs-prisma';
+import { getOrgIdFromStore } from 'src/common/utils/get-orgId';
 
 @Injectable()
 export class PostsRepo {
   constructor(private prisma: PrismaService) {}
 
   createPost(args: { data: Prisma.PostCreateInput }) {
+    const orgId = getOrgIdFromStore();
     return this.prisma.post.create({
-      data: args.data,
+      data: {
+        ...args.data,
+        ...(orgId && {
+          organisation: {
+            connect: {
+              id: orgId,
+            },
+          },
+        }),
+      },
       include: {
         _count: { select: { comments: true } },
       },
@@ -19,9 +30,19 @@ export class PostsRepo {
     where: Prisma.PostWhereUniqueInput;
     data: Prisma.PostUpdateInput;
   }) {
+    const orgId = getOrgIdFromStore();
     return this.prisma.post.update({
       where: { ...args.where, deletedAt: null },
-      data: args.data,
+      data: {
+        ...args.data,
+        ...(orgId && {
+          organisation: {
+            connect: {
+              id: orgId,
+            },
+          },
+        }),
+      },
       include: {
         _count: { select: { comments: true } },
       },
@@ -29,8 +50,9 @@ export class PostsRepo {
   }
 
   getPost(args: { where?: Prisma.PostWhereInput }) {
+    const orgId = getOrgIdFromStore();
     return this.prisma.post.findFirst({
-      where: { ...args.where, deletedAt: null },
+      where: { ...args.where, deletedAt: null, ...(orgId && { orgId }) },
       include: {
         _count: { select: { comments: { where: { deletedAt: null } } } },
       },
@@ -38,8 +60,9 @@ export class PostsRepo {
   }
 
   getPosts(args: { where?: Prisma.PostWhereInput; includeAuthor?: boolean }) {
+    const orgId = getOrgIdFromStore();
     return this.prisma.post.findMany({
-      where: { ...args.where, deletedAt: null },
+      where: { ...args.where, deletedAt: null, ...(orgId && { orgId }) },
       include: {
         _count: { select: { comments: { where: { deletedAt: null } } } },
         ...(args.includeAuthor && { author: true }),
@@ -48,10 +71,11 @@ export class PostsRepo {
   }
 
   async getPostComments(args: { where?: Prisma.PostWhereInput }) {
+    const orgId = getOrgIdFromStore();
     return (
       (
         await this.prisma.post.findFirst({
-          where: { ...args.where, deletedAt: null },
+          where: { ...args.where, deletedAt: null, ...(orgId && { orgId }) },
           select: {
             comments: {
               where: {
@@ -65,8 +89,9 @@ export class PostsRepo {
   }
 
   deletePost(args: { where: Prisma.PostWhereUniqueInput }) {
+    const orgId = getOrgIdFromStore();
     return this.prisma.post.update({
-      where: { ...args.where, deletedAt: null },
+      where: { ...args.where, deletedAt: null, ...(orgId && { orgId }) },
       data: {
         deletedAt: new Date(),
         comments: {
