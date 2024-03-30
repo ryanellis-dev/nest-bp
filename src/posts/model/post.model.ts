@@ -1,4 +1,6 @@
-import { Expose } from 'class-transformer';
+import { Expose, Type } from 'class-transformer';
+import { withMany } from 'src/common/model/many.model';
+import { User } from 'src/users/model/user.model';
 
 export class Post {
   @Expose() id: string;
@@ -6,6 +8,9 @@ export class Post {
   @Expose() body: string;
   @Expose() public: boolean;
   @Expose() createdAt: Date;
+  @Expose()
+  @Type(() => PostAuthor)
+  author: PostAuthor | null;
 
   _count: {
     comments: number;
@@ -19,6 +24,6 @@ export class Post {
   }
 }
 
-export class ManyPosts {
-  posts: Post[];
-}
+export class PostAuthor extends User {}
+
+export class ManyPosts extends withMany(Post) {}

@@ -6,6 +6,7 @@ import {
   Module,
   NotFoundException,
 } from '@nestjs/common';
+import { ConfigModule } from '@nestjs/config';
 import { ClsModule } from 'nestjs-cls';
 import { LoggerModule } from 'nestjs-pino';
 import {
@@ -13,11 +14,15 @@ import {
   loggingMiddleware,
   providePrismaClientExceptionFilter,
 } from 'nestjs-prisma';
+import { AuthModule } from 'src/auth/auth.module';
 import { CommentsModule } from 'src/comments/comments.module';
+import appConfig from 'src/config/app.config';
+import { UsersModule } from 'src/users/users.module';
 import { PostsModule } from '../posts/posts.module';
 
 @Module({
   imports: [
+    ConfigModule.forRoot({ isGlobal: true, cache: true, load: [appConfig] }),
     LoggerModule.forRoot(),
     ClsModule.forRoot({
       global: true,
@@ -36,6 +41,8 @@ import { PostsModule } from '../posts/posts.module';
     }),
     PostsModule,
     CommentsModule,
+    UsersModule,
+    AuthModule,
   ],
   providers: [
     providePrismaClientExceptionFilter({

@@ -1,4 +1,7 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, NotFoundException } from '@nestjs/common';
+import { ClsService } from 'nestjs-cls';
+import { TypedClsStore } from 'src/common/types/cls.types';
+import { getUserFromStore } from 'src/common/utils/get-user';
 import { PostsRepo } from 'src/posts/posts.repo';
 import { CommentsRepo } from './comments.repo';
 import { CreateCommentDto } from './dto/create-comment.dto';
@@ -10,6 +13,7 @@ export class CommentsService {
   constructor(
     private commentsRepo: CommentsRepo,
     private postsRepo: PostsRepo,
+    private cls: ClsService<TypedClsStore>,
   ) {}
 
   async createComment(
@@ -34,10 +38,14 @@ export class CommentsService {
     commentId: string,
     data: UpdateCommentDto,
   ): Promise<Comment> {
+    const user = getUserFromStore(this.cls);
     const comment = await this.commentsRepo.updateComment({
       where: {
         id: commentId,
         postId,
+        author: {
+          id: user.sub,
+        },
       },
       data,
     });
@@ -50,10 +58,22 @@ export class CommentsService {
         id: postId,
       },
     });
-    return { comments: comments.map((c) => new PostComment(c)) };
+    if (comments === null) throw new NotFoundException();
+    return {
+      results: comments.map((c) => new PostComment(c)),
+    };
   }
 
   async deleteComment(postId: string, commentId: string): Promise<void> {
-    await this.commentsRepo.deleteComment({ where: { id: commentId, postId } });
+    const user = getUserFromStore(this.cls);
+    await this.commentsRepo.deleteComment({
+      where: {
+        id: commentId,
+        postId,
+        author: {
+          id: user.sub,
+        },
+      },
+    });
   }
 }

@@ -4,7 +4,6 @@ import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
 import helmet from 'helmet';
 import { Logger, LoggerErrorInterceptor } from 'nestjs-pino';
 import { AppModule } from './app/app.module';
-import metadata from './metadata';
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule, { bufferLogs: true });
@@ -33,10 +32,10 @@ async function bootstrap() {
   app.useLogger(app.get(Logger));
 
   // Swagger config
-  await SwaggerModule.loadPluginMetadata(metadata);
   const config = new DocumentBuilder()
     .setTitle('Best Practice API')
     .addTag('posts')
+    .addBearerAuth()
     .build();
   const document = SwaggerModule.createDocument(app, config);
   SwaggerModule.setup('docs', app, document);

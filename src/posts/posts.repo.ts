@@ -29,7 +29,7 @@ export class PostsRepo {
   }
 
   getPost(args: { where?: Prisma.PostWhereInput }) {
-    return this.prisma.post.findFirstOrThrow({
+    return this.prisma.post.findFirst({
       where: { ...args.where, deletedAt: null },
       include: {
         _count: { select: { comments: { where: { deletedAt: null } } } },
@@ -37,28 +37,31 @@ export class PostsRepo {
     });
   }
 
-  getPosts(args: { where?: Prisma.PostWhereInput }) {
+  getPosts(args: { where?: Prisma.PostWhereInput; includeAuthor?: boolean }) {
     return this.prisma.post.findMany({
       where: { ...args.where, deletedAt: null },
       include: {
         _count: { select: { comments: { where: { deletedAt: null } } } },
+        ...(args.includeAuthor && { author: true }),
       },
     });
   }
 
   async getPostComments(args: { where?: Prisma.PostWhereInput }) {
     return (
-      await this.prisma.post.findFirstOrThrow({
-        where: { ...args.where, deletedAt: null },
-        select: {
-          comments: {
-            where: {
-              deletedAt: null,
+      (
+        await this.prisma.post.findFirst({
+          where: { ...args.where, deletedAt: null },
+          select: {
+            comments: {
+              where: {
+                deletedAt: null,
+              },
             },
           },
-        },
-      })
-    ).comments;
+        })
+      )?.comments || null
+    );
   }
 
   deletePost(args: { where: Prisma.PostWhereUniqueInput }) {

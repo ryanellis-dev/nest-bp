@@ -1,9 +1,10 @@
-import { Exclude, Expose } from 'class-transformer';
+import { OmitType } from '@nestjs/swagger';
+import { Expose } from 'class-transformer';
+import { withMany } from 'src/common/model/many.model';
 
 export class Comment {
   @Expose() id: string;
   @Expose() postId: string;
-  @Expose() userId: string | null;
   @Expose() body: string;
   @Expose() createdAt: Date;
 
@@ -12,10 +13,11 @@ export class Comment {
   }
 }
 
-export class PostComment extends Comment {
-  @Exclude() postId: string;
+export class PostComment extends OmitType(Comment, ['postId']) {
+  constructor(data: PostComment) {
+    super();
+    Object.assign(this, data);
+  }
 }
 
-export class ManyPostComments {
-  comments: PostComment[];
-}
+export class ManyPostComments extends withMany(PostComment) {}

@@ -12,7 +12,6 @@ import { ApiTags } from '@nestjs/swagger';
 import { PrismaClientExceptionFilter } from 'nestjs-prisma';
 import { CreatePostDto } from './dto/create-post.dto';
 import { UpdatePostDto } from './dto/update-post.dto';
-import { ManyPosts } from './model/post.model';
 import { PostsService } from './posts.service';
 
 @ApiTags('posts')
@@ -22,7 +21,7 @@ export class PostsController {
   constructor(private postsService: PostsService) {}
 
   @Post()
-  async createPost(@Body() data: CreatePostDto) {
+  createPost(@Body() data: CreatePostDto) {
     return this.postsService.createPost(data);
   }
 
@@ -37,7 +36,7 @@ export class PostsController {
   }
 
   @Get()
-  getPosts(): Promise<ManyPosts> {
+  getPosts() {
     return this.postsService.getPosts();
   }
 
