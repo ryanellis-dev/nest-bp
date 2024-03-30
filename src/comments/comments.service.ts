@@ -29,10 +29,15 @@ export class CommentsService {
     return new Comment(comment);
   }
 
-  async updateComment(id: string, data: UpdateCommentDto): Promise<Comment> {
+  async updateComment(
+    postId: string,
+    commentId: string,
+    data: UpdateCommentDto,
+  ): Promise<Comment> {
     const comment = await this.commentsRepo.updateComment({
       where: {
-        id,
+        id: commentId,
+        postId,
       },
       data,
     });
@@ -48,7 +53,7 @@ export class CommentsService {
     return { comments: comments.map((c) => new PostComment(c)) };
   }
 
-  async deleteComment(id: string): Promise<void> {
-    await this.commentsRepo.deleteComment({ where: { id } });
+  async deleteComment(postId: string, commentId: string): Promise<void> {
+    await this.commentsRepo.deleteComment({ where: { id: commentId, postId } });
   }
 }

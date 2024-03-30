@@ -6,6 +6,7 @@ import {
   Module,
   NotFoundException,
 } from '@nestjs/common';
+import { ClsModule } from 'nestjs-cls';
 import { LoggerModule } from 'nestjs-pino';
 import {
   PrismaModule,
@@ -18,6 +19,10 @@ import { PostsModule } from '../posts/posts.module';
 @Module({
   imports: [
     LoggerModule.forRoot(),
+    ClsModule.forRoot({
+      global: true,
+      middleware: { mount: true },
+    }),
     PrismaModule.forRoot({
       isGlobal: true,
       prismaServiceOptions: {

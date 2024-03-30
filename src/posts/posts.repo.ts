@@ -29,10 +29,10 @@ export class PostsRepo {
   }
 
   getPost(args: { where?: Prisma.PostWhereInput }) {
-    return this.prisma.post.findFirst({
+    return this.prisma.post.findFirstOrThrow({
       where: { ...args.where, deletedAt: null },
       include: {
-        _count: { select: { comments: true } },
+        _count: { select: { comments: { where: { deletedAt: null } } } },
       },
     });
   }
@@ -41,7 +41,7 @@ export class PostsRepo {
     return this.prisma.post.findMany({
       where: { ...args.where, deletedAt: null },
       include: {
-        _count: { select: { comments: true } },
+        _count: { select: { comments: { where: { deletedAt: null } } } },
       },
     });
   }
@@ -51,7 +51,11 @@ export class PostsRepo {
       await this.prisma.post.findFirstOrThrow({
         where: { ...args.where, deletedAt: null },
         select: {
-          comments: true,
+          comments: {
+            where: {
+              deletedAt: null,
+            },
+          },
         },
       })
     ).comments;
@@ -66,6 +70,7 @@ export class PostsRepo {
           updateMany: {
             where: {
               postId: args.where.id,
+              deletedAt: null,
             },
             data: {
               deletedAt: new Date(),
