@@ -74,27 +74,6 @@ export class PostsRepo {
     });
   }
 
-  async getPostComments(args: { where?: Prisma.PostWhereInput }) {
-    const orgId = getOrgIdFromStore();
-    return (
-      (
-        await this.prisma.post.findFirst({
-          where: { ...args.where, deletedAt: null, ...(orgId && { orgId }) },
-          select: {
-            comments: {
-              where: {
-                deletedAt: null,
-              },
-              include: {
-                author: true,
-              },
-            },
-          },
-        })
-      )?.comments || null
-    );
-  }
-
   deletePost(args: { where: Prisma.PostWhereUniqueInput }) {
     const orgId = getOrgIdFromStore();
     return this.prisma.post.update({

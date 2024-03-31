@@ -14,7 +14,7 @@ export class AuthService {
     private jwtService: JwtService,
   ) {}
 
-  async login(data: LoginDto): Promise<{ access_token: string }> {
+  async login(data: LoginDto): Promise<Login> {
     const user = await this.usersRepo.getUser({ where: { email: data.email } });
     if (!user) throw new UnauthorizedException();
     const payload: AuthPayload = {

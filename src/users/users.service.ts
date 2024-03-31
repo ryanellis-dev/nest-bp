@@ -11,8 +11,8 @@ export class UsersService {
     return new User(await this.usersRepo.createUser({ data }));
   }
 
-  async deleteUser(id: string): Promise<void> {
-    await this.usersRepo.deleteUser({ where: { id } });
+  async deleteUser(userId: string): Promise<void> {
+    await this.usersRepo.deleteUser({ where: { id: userId } });
   }
 
   async getUsers(): Promise<ManyUsers> {

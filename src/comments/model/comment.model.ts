@@ -4,10 +4,25 @@ import { Many } from 'src/common/model/many.model';
 import { User } from 'src/users/model/user.model';
 
 export class Comment {
+  /**
+   * @format uuid
+   * @example "86f0f545-75e8-44e0-9b12-2c217416dc55"
+   */
   @Expose() id: string;
+
+  /**
+   * @format uuid
+   * @example "86f0f545-75e8-44e0-9b12-2c217416dc55"
+   */
   @Expose() postId: string;
+
+  /**
+   * @example "Intelligence is the ability to adapt to change."
+   */
   @Expose() body: string;
+
   @Expose() createdAt: Date;
+
   @Expose()
   @Type(() => CommentAuthor)
   author: CommentAuthor | null;

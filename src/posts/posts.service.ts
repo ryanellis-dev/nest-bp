@@ -1,7 +1,7 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
 import { getUserOrThrow } from 'src/common/utils/get-user';
 import { CreatePostDto } from './dto/create-post.dto';
-import { GetPostsQueryDto } from './dto/get-posts-params.dto';
+import { GetPostsQueryDto } from './dto/get-posts-query.dto';
 import { UpdatePostDto } from './dto/update-post.dto';
 import { ManyPosts, Post } from './model/post.model';
 import { PostsRepo } from './posts.repo';
@@ -27,12 +27,12 @@ export class PostsService {
     );
   }
 
-  async updatePost(id: string, data: UpdatePostDto): Promise<Post> {
+  async updatePost(postId: string, data: UpdatePostDto): Promise<Post> {
     const user = getUserOrThrow();
     return new Post(
       await this.postsRepo.updatePost({
         where: {
-          id,
+          id: postId,
           author: {
             id: user.id,
           },
@@ -43,10 +43,10 @@ export class PostsService {
     );
   }
 
-  async getPost(id: string): Promise<Post> {
+  async getPost(postId: string): Promise<Post> {
     const post = await this.postsRepo.getPost({
       where: {
-        id,
+        id: postId,
       },
       includeAuthor: true,
     });
@@ -66,11 +66,11 @@ export class PostsService {
     return { results: posts.map((p) => new Post(p)) };
   }
 
-  async deletePost(id: string): Promise<void> {
+  async deletePost(postId: string): Promise<void> {
     const user = getUserOrThrow();
     await this.postsRepo.deletePost({
       where: {
-        id,
+        id: postId,
         author: {
           id: user.id,
         },

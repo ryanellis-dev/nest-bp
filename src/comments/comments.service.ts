@@ -1,6 +1,5 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
 import { getUserOrThrow } from 'src/common/utils/get-user';
-import { PostsRepo } from 'src/posts/posts.repo';
 import { CommentsRepo } from './comments.repo';
 import { CreateCommentDto } from './dto/create-comment.dto';
 import { UpdateCommentDto } from './dto/update-comment.dto';
@@ -8,10 +7,7 @@ import { Comment, ManyPostComments, PostComment } from './model/comment.model';
 
 @Injectable()
 export class CommentsService {
-  constructor(
-    private commentsRepo: CommentsRepo,
-    private postsRepo: PostsRepo,
-  ) {}
+  constructor(private commentsRepo: CommentsRepo) {}
 
   async createComment(
     postId: string,
@@ -51,7 +47,7 @@ export class CommentsService {
   }
 
   async getComments(postId: string): Promise<ManyPostComments> {
-    const comments = await this.postsRepo.getPostComments({
+    const comments = await this.commentsRepo.getPostComments({
       where: {
         id: postId,
       },

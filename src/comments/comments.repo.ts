@@ -70,4 +70,25 @@ export class CommentsRepo {
       },
     });
   }
+
+  async getPostComments(args: { where?: Prisma.PostWhereInput }) {
+    const orgId = getOrgIdFromStore();
+    return (
+      (
+        await this.prisma.post.findFirst({
+          where: { ...args.where, deletedAt: null, ...(orgId && { orgId }) },
+          select: {
+            comments: {
+              where: {
+                deletedAt: null,
+              },
+              include: {
+                author: true,
+              },
+            },
+          },
+        })
+      )?.comments || null
+    );
+  }
 }

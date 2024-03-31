@@ -1,4 +1,8 @@
-import { ClassSerializerInterceptor, ValidationPipe } from '@nestjs/common';
+import {
+  ClassSerializerInterceptor,
+  ValidationPipe,
+  VersioningType,
+} from '@nestjs/common';
 import { NestFactory, Reflector } from '@nestjs/core';
 import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
 import helmet from 'helmet';
@@ -7,6 +11,9 @@ import { AppModule } from './app/app.module';
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule, { bufferLogs: true });
+  // // Use global logging error interceptor
+  app.useGlobalInterceptors(new LoggerErrorInterceptor());
+  app.useLogger(app.get(Logger));
 
   // Use helmet middleware
   app.use(helmet());
@@ -26,10 +33,11 @@ async function bootstrap() {
     }),
   );
 
-  // // Use global logging error interceptor
-  app.useGlobalInterceptors(new LoggerErrorInterceptor());
-
-  app.useLogger(app.get(Logger));
+  // Enable Media Type versioning
+  app.enableVersioning({
+    defaultVersion: '1',
+    type: VersioningType.URI,
+  });
 
   // Swagger config
   const config = new DocumentBuilder()

@@ -17,6 +17,7 @@ import {
 import { AuthModule } from 'src/auth/auth.module';
 import { CommentsModule } from 'src/comments/comments.module';
 import appConfig from 'src/config/app.config';
+import { HealthModule } from 'src/health/health.module';
 import { OrganisationsModule } from 'src/organisations/organisations.module';
 import { UsersModule } from 'src/users/users.module';
 import { PostsModule } from '../posts/posts.module';
@@ -24,7 +25,9 @@ import { PostsModule } from '../posts/posts.module';
 @Module({
   imports: [
     ConfigModule.forRoot({ isGlobal: true, cache: true, load: [appConfig] }),
-    LoggerModule.forRoot(),
+    LoggerModule.forRoot({
+      exclude: ['/health'],
+    }),
     ClsModule.forRoot({
       global: true,
       middleware: { mount: true },
@@ -45,6 +48,7 @@ import { PostsModule } from '../posts/posts.module';
     UsersModule,
     AuthModule,
     OrganisationsModule,
+    HealthModule,
   ],
   providers: [
     providePrismaClientExceptionFilter({

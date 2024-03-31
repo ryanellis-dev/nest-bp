@@ -1,6 +1,7 @@
 import { Body, Controller, Delete, Get, Param, Post } from '@nestjs/common';
 import { ApiBearerAuth, ApiTags } from '@nestjs/swagger';
 import { CreateUserDto } from './dto/create-user.dto';
+import { UserParamsDto } from './dto/user-params.dto';
 import { UsersService } from './users.service';
 
 @ApiTags('users')
@@ -14,9 +15,9 @@ export class UsersController {
     return this.usersService.createUser(data);
   }
 
-  @Delete('/:id')
-  deleteUser(@Param('id') id: string) {
-    return this.usersService.deleteUser(id);
+  @Delete('/:userId')
+  deleteUser(@Param() params: UserParamsDto) {
+    return this.usersService.deleteUser(params.userId);
   }
 
   @Get()

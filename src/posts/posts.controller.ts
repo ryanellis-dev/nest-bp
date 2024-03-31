@@ -12,7 +12,8 @@ import {
 import { ApiBearerAuth, ApiTags } from '@nestjs/swagger';
 import { PrismaClientExceptionFilter } from 'nestjs-prisma';
 import { CreatePostDto } from './dto/create-post.dto';
-import { GetPostsQueryDto } from './dto/get-posts-params.dto';
+import { GetPostsQueryDto } from './dto/get-posts-query.dto';
+import { PostParamsDto } from './dto/post-params.dto';
 import { UpdatePostDto } from './dto/update-post.dto';
 import { PostsService } from './posts.service';
 
@@ -28,14 +29,14 @@ export class PostsController {
     return this.postsService.createPost(data);
   }
 
-  @Patch('/:id')
-  updatePost(@Param('id') id: string, @Body() data: UpdatePostDto) {
-    return this.postsService.updatePost(id, data);
+  @Patch('/:postId')
+  updatePost(@Param() params: PostParamsDto, @Body() data: UpdatePostDto) {
+    return this.postsService.updatePost(params.postId, data);
   }
 
-  @Get('/:id')
-  getPost(@Param('id') id: string) {
-    return this.postsService.getPost(id);
+  @Get('/:postId')
+  getPost(@Param() params: PostParamsDto) {
+    return this.postsService.getPost(params.postId);
   }
 
   @Get()
@@ -43,8 +44,8 @@ export class PostsController {
     return this.postsService.getPosts(query);
   }
 
-  @Delete('/:id')
-  deletePost(@Param('id') id: string) {
-    return this.postsService.deletePost(id);
+  @Delete('/:postId')
+  deletePost(@Param() params: PostParamsDto) {
+    return this.postsService.deletePost(params.postId);
   }
 }
