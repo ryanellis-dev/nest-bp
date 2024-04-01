@@ -1,7 +1,6 @@
 import { ApiHideProperty, ApiProperty } from '@nestjs/swagger';
-import { Exclude, Expose, Type } from 'class-transformer';
+import { Exclude, Expose } from 'class-transformer';
 import { Many } from 'src/common/model/many.model';
-import { User } from 'src/users/model/user.model';
 
 export class Post {
   /**
@@ -27,10 +26,6 @@ export class Post {
 
   @Expose() createdAt: Date;
 
-  @Expose()
-  @Type(() => PostAuthor)
-  author: PostAuthor | null;
-
   @ApiProperty()
   @Expose()
   get commentCount(): number {
@@ -47,7 +42,5 @@ export class Post {
     Object.assign(this, data);
   }
 }
-
-export class PostAuthor extends User {}
 
 export class ManyPosts extends Many(Post) {}

@@ -16,9 +16,14 @@ export class PostsService {
       await this.postsRepo.createPost({
         data: {
           ...data,
-          author: {
-            connect: {
-              id: user.id,
+          users: {
+            create: {
+              user: {
+                connect: {
+                  id: user.id,
+                },
+              },
+              role: 'OWNER',
             },
           },
         },
@@ -28,14 +33,10 @@ export class PostsService {
   }
 
   async updatePost(postId: string, data: UpdatePostDto): Promise<Post> {
-    const user = getUserOrThrow();
     return new Post(
       await this.postsRepo.updatePost({
         where: {
           id: postId,
-          author: {
-            id: user.id,
-          },
         },
         data,
         includeAuthor: true,
@@ -57,9 +58,14 @@ export class PostsService {
   async getPosts(query: GetPostsQueryDto): Promise<ManyPosts> {
     const posts = await this.postsRepo.getPosts({
       where: {
-        author: {
-          id: query.author,
-        },
+        ...(query.author && {
+          users: {
+            some: {
+              userId: query.author,
+              role: 'OWNER',
+            },
+          },
+        }),
       },
       includeAuthor: true,
     });
@@ -67,13 +73,9 @@ export class PostsService {
   }
 
   async deletePost(postId: string): Promise<void> {
-    const user = getUserOrThrow();
     await this.postsRepo.deletePost({
       where: {
         id: postId,
-        author: {
-          id: user.id,
-        },
       },
     });
   }

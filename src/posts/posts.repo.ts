@@ -2,6 +2,7 @@ import { Injectable } from '@nestjs/common';
 import { Prisma } from '@prisma/client';
 import { PrismaService } from 'nestjs-prisma';
 import { getOrgIdFromStore } from 'src/common/utils/get-orgId';
+import { getUserFromStore } from 'src/common/utils/get-user';
 
 @Injectable()
 export class PostsRepo {
@@ -21,7 +22,6 @@ export class PostsRepo {
         }),
       },
       include: {
-        author: args.includeAuthor,
         _count: { select: { comments: true } },
       },
     });
@@ -47,7 +47,6 @@ export class PostsRepo {
       },
       include: {
         _count: { select: { comments: true } },
-        author: args.includeAuthor,
       },
     });
   }
@@ -58,18 +57,28 @@ export class PostsRepo {
       where: { ...args.where, deletedAt: null, ...(orgId && { orgId }) },
       include: {
         _count: { select: { comments: { where: { deletedAt: null } } } },
-        author: args.includeAuthor,
       },
     });
   }
 
   getPosts(args: { where?: Prisma.PostWhereInput; includeAuthor?: boolean }) {
     const orgId = getOrgIdFromStore();
+    const user = getUserFromStore();
     return this.prisma.post.findMany({
-      where: { ...args.where, deletedAt: null, ...(orgId && { orgId }) },
+      where: {
+        ...args.where,
+        deletedAt: null,
+        ...(orgId && { orgId }),
+        ...(user && {
+          users: {
+            some: {
+              userId: user.id,
+            },
+          },
+        }),
+      },
       include: {
         _count: { select: { comments: { where: { deletedAt: null } } } },
-        author: args.includeAuthor,
       },
     });
   }
@@ -93,5 +102,28 @@ export class PostsRepo {
         },
       },
     });
+  }
+
+  async getPostRoleForUser(args: {
+    postWhere: Prisma.PostWhereUniqueInput;
+    userWhere: Prisma.UserWhereUniqueInput;
+  }) {
+    const orgId = getOrgIdFromStore();
+    const post = await this.prisma.usersOnPosts.findFirst({
+      where: {
+        post: {
+          ...args.postWhere,
+          ...(orgId && { orgId }),
+        },
+        user: {
+          ...args.userWhere,
+          ...(orgId && { orgId }),
+        },
+      },
+      select: {
+        role: true,
+      },
+    });
+    return post?.role || null;
   }
 }

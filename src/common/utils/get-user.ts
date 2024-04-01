@@ -8,3 +8,9 @@ export function getUserOrThrow() {
   if (!user) throw new UnauthorizedException();
   return user;
 }
+
+export function getUserFromStore() {
+  const cls = ClsServiceManager.getClsService<TypedClsStore>();
+  const user = cls.get('user');
+  return user || null;
+}
