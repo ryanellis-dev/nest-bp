@@ -1,5 +1,5 @@
 import { Injectable } from '@nestjs/common';
-import { Prisma } from '@prisma/client';
+import { PostRole, Prisma } from '@prisma/client';
 import { PrismaService } from 'nestjs-prisma';
 import { getOrgIdFromStore } from 'src/common/utils/get-orgId';
 import { getUserFromStore } from 'src/common/utils/get-user';
@@ -125,7 +125,7 @@ export class PostsRepo {
     userWhere: Prisma.UserWhereUniqueInput;
   }) {
     const orgId = getOrgIdFromStore();
-    const post = await this.prisma.usersOnPosts.findFirst({
+    const userOnPost = await this.prisma.usersOnPosts.findFirst({
       where: {
         post: {
           ...args.postWhere,
@@ -144,8 +144,16 @@ export class PostsRepo {
       },
       select: {
         role: true,
+        post: {
+          select: {
+            public: true,
+          },
+        },
       },
     });
-    return post?.role || null;
+    // If post is public assume reader role
+    return (
+      userOnPost?.role || (userOnPost?.post.public && PostRole.READER) || null
+    );
   }
 }

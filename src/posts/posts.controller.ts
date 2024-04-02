@@ -47,6 +47,7 @@ export class PostsController {
   }
 
   @Get()
+  @Require(new Permission(Action.Read, ResourceType.Post))
   getPosts(@Query() query: GetPostsQueryDto) {
     return this.postsService.getPosts(query);
   }

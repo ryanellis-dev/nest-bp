@@ -10,7 +10,7 @@ const POST_PERMISSIONS_LOOKUP = {
 
 const ORG_PERMISSIONS_LOOKUP = {
   [EnumOrgRole.Admin]: ['*:post', '*:user'],
-  [EnumOrgRole.Member]: ['read:user'],
+  [EnumOrgRole.Member]: ['read:user', 'read:post', 'create:post'],
 };
 
 // TODO: Use casl to move all logic into a consolidated library
