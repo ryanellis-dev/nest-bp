@@ -3,6 +3,7 @@ import { Prisma } from '@prisma/client';
 import { PrismaService } from 'nestjs-prisma';
 import { getOrgIdFromStore } from 'src/common/utils/get-orgId';
 import { getUserFromStore } from 'src/common/utils/get-user';
+import { EnumOrgRole } from 'src/permission/model/org-role.model';
 
 @Injectable()
 export class PostsRepo {
@@ -54,7 +55,17 @@ export class PostsRepo {
   getPost(args: { where?: Prisma.PostWhereInput; includeAuthor?: boolean }) {
     const orgId = getOrgIdFromStore();
     return this.prisma.post.findFirst({
-      where: { ...args.where, deletedAt: null, ...(orgId && { orgId }) },
+      where: {
+        ...args.where,
+        deletedAt: null,
+        ...(orgId && {
+          organisations: {
+            some: {
+              orgId,
+            },
+          },
+        }),
+      },
       include: {
         _count: { select: { comments: { where: { deletedAt: null } } } },
       },
@@ -69,13 +80,14 @@ export class PostsRepo {
         ...args.where,
         deletedAt: null,
         ...(orgId && { orgId }),
-        ...(user && {
-          users: {
-            some: {
-              userId: user.id,
+        ...(user &&
+          user.orgRole !== EnumOrgRole.Admin && {
+            users: {
+              some: {
+                userId: user.id,
+              },
             },
-          },
-        }),
+          }),
       },
       include: {
         _count: { select: { comments: { where: { deletedAt: null } } } },
@@ -86,7 +98,11 @@ export class PostsRepo {
   deletePost(args: { where: Prisma.PostWhereUniqueInput }) {
     const orgId = getOrgIdFromStore();
     return this.prisma.post.update({
-      where: { ...args.where, deletedAt: null, ...(orgId && { orgId }) },
+      where: {
+        ...args.where,
+        deletedAt: null,
+        ...(orgId && { orgId }),
+      },
       data: {
         deletedAt: new Date(),
         comments: {
@@ -117,7 +133,13 @@ export class PostsRepo {
         },
         user: {
           ...args.userWhere,
-          ...(orgId && { orgId }),
+          ...(orgId && {
+            organisations: {
+              some: {
+                orgId,
+              },
+            },
+          }),
         },
       },
       select: {

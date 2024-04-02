@@ -15,11 +15,21 @@ export class AuthService {
   ) {}
 
   async login(data: LoginDto): Promise<Login> {
-    const user = await this.usersRepo.getUser({ where: { email: data.email } });
+    const user = await this.usersRepo.getUser({
+      where: {
+        email: data.email,
+        organisations: {
+          some: {
+            orgId: data.orgId,
+          },
+        },
+      },
+    });
     if (!user) throw new UnauthorizedException();
     const payload: AuthPayload = {
       sub: user.id,
       email: user.email,
+      orgId: data.orgId,
     };
     return new Login({
       access_token: await this.jwtService.signAsync(payload),

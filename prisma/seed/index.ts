@@ -37,13 +37,17 @@ async function main() {
         update: {},
         create: {
           ...user,
-          organisation: {
-            connectOrCreate: {
-              where: {
-                id: org.id,
-              },
-              create: {
-                ...org,
+          organisations: {
+            create: {
+              organisation: {
+                connectOrCreate: {
+                  where: {
+                    id: org.id,
+                  },
+                  create: {
+                    ...org,
+                  },
+                },
               },
             },
           },

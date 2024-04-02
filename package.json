@@ -24,7 +24,8 @@
     "test:e2e": "vitest run --config ./test/vitest.config.ts",
     "prisma": "prisma",
     "setup:local": "cd local-services && docker compose up --wait && cd .. && prisma migrate reset",
-    "setup:local:clean": "cd local-services && docker compose down"
+    "setup:local:clean": "cd local-services && docker compose down",
+    "data-migration:user_org_m2m": "ts-node ./prisma/migrations/20240401230312_user_org_m2m/data-migration.ts"
   },
   "dependencies": {
     "@nestjs/common": "^10.0.0",

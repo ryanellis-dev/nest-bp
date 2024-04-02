@@ -13,9 +13,9 @@ export class UsersRepo {
       data: {
         ...args.data,
         ...(orgId && {
-          organisation: {
-            connect: {
-              id: orgId,
+          organisations: {
+            create: {
+              orgId,
             },
           },
         }),
@@ -26,21 +26,69 @@ export class UsersRepo {
   async deleteUser(args: { where: Prisma.UserWhereUniqueInput }) {
     const orgId = getOrgIdFromStore();
     return this.prisma.user.delete({
-      where: { ...args.where, ...(orgId && { orgId }) },
+      where: {
+        ...args.where,
+        ...(orgId && {
+          organisations: {
+            some: {
+              orgId,
+            },
+          },
+        }),
+      },
     });
   }
 
   async getUser(args: { where: Prisma.UserWhereUniqueInput }) {
     const orgId = getOrgIdFromStore();
     return this.prisma.user.findFirst({
-      where: { ...args.where, ...(orgId && { orgId }) },
+      where: {
+        ...args.where,
+        ...(orgId && {
+          organisations: {
+            some: {
+              orgId,
+            },
+          },
+        }),
+      },
+    });
+  }
+
+  async getLoggedInUser(args: { userId: string; orgId: string }) {
+    // User / org context is unavailable in this method
+    return this.prisma.user.findFirst({
+      where: {
+        id: args.userId,
+        organisations: {
+          some: {
+            orgId: args.orgId,
+          },
+        },
+      },
+      include: {
+        organisations: {
+          where: {
+            orgId: args.orgId,
+          },
+        },
+      },
     });
   }
 
   async getUsers(args: { where?: Prisma.UserWhereInput }) {
     const orgId = getOrgIdFromStore();
     return this.prisma.user.findMany({
-      where: { ...args.where, ...(orgId && { orgId }) },
+      where: {
+        ...args.where,
+        ...(orgId && {
+          organisations: {
+            some: {
+              orgId,
+            },
+          },
+        }),
+      },
     });
   }
 
@@ -50,7 +98,16 @@ export class UsersRepo {
   }) {
     const orgId = getOrgIdFromStore();
     return this.prisma.user.update({
-      where: { ...args.where, ...(orgId && { orgId }) },
+      where: {
+        ...args.where,
+        ...(orgId && {
+          organisations: {
+            some: {
+              orgId,
+            },
+          },
+        }),
+      },
       data: args.data,
     });
   }

@@ -40,6 +40,7 @@ export class PermissionsService {
         if (postRole === null) throw new NotFoundException();
         return can(
           permission,
+          user.orgRole,
           postRole ? prismaPostRoleToModel(postRole) : undefined,
         );
       case ResourceType.Comment:

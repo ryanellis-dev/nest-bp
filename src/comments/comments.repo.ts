@@ -17,7 +17,16 @@ export class CommentsRepo {
       data: {
         ...args.data,
         post: {
-          connect: { ...args.postConnect, ...(orgId && { orgId }) },
+          connect: {
+            ...args.postConnect,
+            ...(orgId && {
+              organisations: {
+                some: {
+                  orgId,
+                },
+              },
+            }),
+          },
         },
         ...(args.authorConnect && {
           author: {
@@ -76,7 +85,17 @@ export class CommentsRepo {
     return (
       (
         await this.prisma.post.findFirst({
-          where: { ...args.where, deletedAt: null, ...(orgId && { orgId }) },
+          where: {
+            ...args.where,
+            deletedAt: null,
+            ...(orgId && {
+              organisations: {
+                some: {
+                  orgId,
+                },
+              },
+            }),
+          },
           select: {
             comments: {
               where: {

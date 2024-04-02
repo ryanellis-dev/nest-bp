@@ -5,6 +5,7 @@ import { UpdateCurrentOrgDto } from './dto/update-current-org.dto';
 import { Organisation } from './model/organisation.model';
 import { OrganisationsService } from './organisations.service';
 
+//TODO: Endpoints need updating to reflect many-to-many model
 @ApiTags('organisations')
 @ApiBearerAuth()
 @Controller('organisations')

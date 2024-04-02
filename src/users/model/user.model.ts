@@ -1,5 +1,6 @@
 import { Expose } from 'class-transformer';
 import { Many } from 'src/common/model/many.model';
+import { EnumOrgRole } from 'src/permission/model/org-role.model';
 
 export class User {
   /**
@@ -32,4 +33,11 @@ export class LoggedInUser extends User {
    * @example "86f0f545-75e8-44e0-9b12-2c217416dc55"
    */
   @Expose() orgId: string | null;
+
+  //TODO: docs
+  @Expose() orgRole: EnumOrgRole;
+
+  constructor(data: LoggedInUser) {
+    super(data);
+  }
 }

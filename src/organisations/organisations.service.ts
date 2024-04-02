@@ -32,22 +32,21 @@ export class OrganisationsService {
     data: UpdateCurrentOrgDto,
   ): Promise<Organisation | null> {
     const user = getUserOrThrow();
-    const updatedUser = await this.usersRepo.updateUser({
+    await this.usersRepo.updateUser({
       where: {
         id: user.id,
       },
       data: {
-        organisation: {
-          connect: {
-            id: data.id,
+        organisations: {
+          create: {
+            orgId: data.id,
           },
         },
       },
     });
-    if (!updatedUser.orgId) return null;
     return await this.organisationsRepo.getOrganisation({
       where: {
-        id: updatedUser.orgId,
+        id: data.id,
       },
     });
   }
