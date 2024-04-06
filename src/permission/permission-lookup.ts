@@ -1,5 +1,5 @@
 import { EnumOrgRole } from './model/org-role.model';
-import { Permission, allActionsToString } from './model/permission.model';
+import { allActionsToString, Permission } from './model/permission.model';
 import { EnumPostRole } from './model/post-role.model';
 
 const POST_PERMISSIONS_LOOKUP = {
@@ -10,7 +10,7 @@ const POST_PERMISSIONS_LOOKUP = {
 
 const ORG_PERMISSIONS_LOOKUP = {
   [EnumOrgRole.Admin]: ['*:post', '*:user'],
-  [EnumOrgRole.Member]: ['read:user', 'read:post', 'create:post'],
+  [EnumOrgRole.Member]: ['read:user', 'read:post', 'create:post', '*:comment'],
 };
 
 // TODO: Use casl to move all logic into a consolidated library

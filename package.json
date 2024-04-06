@@ -28,6 +28,7 @@
     "data-migration:user_org_m2m": "ts-node ./prisma/migrations/20240401230312_user_org_m2m/data-migration.ts"
   },
   "dependencies": {
+    "@casl/ability": "^6.7.1",
     "@nestjs/common": "^10.0.0",
     "@nestjs/config": "^3.2.1",
     "@nestjs/core": "^10.0.0",

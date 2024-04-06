@@ -4,4 +4,5 @@ export enum Action {
   Read = 'read',
   Delete = 'delete',
   All = '*',
+  Manage = 'manage',
 }

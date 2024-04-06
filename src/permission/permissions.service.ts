@@ -1,17 +1,18 @@
 import { Injectable, Logger, NotFoundException } from '@nestjs/common';
+import { CaslAbilityFactory } from 'src/casl/casl-ability.factory/casl-ability.factory';
 import { CommentsRepo } from 'src/comments/comments.repo';
 import { getUserOrThrow } from 'src/common/utils/get-user';
+import { Post } from 'src/posts/model/post.model';
 import { PostsRepo } from 'src/posts/posts.repo';
-import { prismaPostRoleToModel } from './dto/post-role.dto';
 import { Permission } from './model/permission.model';
 import { ResourceType } from './model/resources.model';
-import { can } from './permission-lookup';
 
 @Injectable()
 export class PermissionsService {
   constructor(
     private postsRepo: PostsRepo,
     private commentsRepo: CommentsRepo,
+    private caslAbilityFactory: CaslAbilityFactory,
   ) {}
 
   async checkPermission(
@@ -38,11 +39,9 @@ export class PermissionsService {
             })
           : undefined;
         if (postRole === null) throw new NotFoundException();
-        return can(
-          permission,
-          user.orgRole,
-          postRole ? prismaPostRoleToModel(postRole) : undefined,
-        );
+        return this.caslAbilityFactory
+          .createForLoggedInUser(user)
+          .can(permission.action, Post);
       case ResourceType.Comment:
         return await this.commentsRepo.userIsCommentAuthor({
           userWhere: { id: user.id },

@@ -19,13 +19,7 @@ export class CommentsRepo {
         post: {
           connect: {
             ...args.postConnect,
-            ...(orgId && {
-              organisations: {
-                some: {
-                  orgId,
-                },
-              },
-            }),
+            ...(orgId && { orgId }),
           },
         },
         ...(args.authorConnect && {
@@ -88,13 +82,7 @@ export class CommentsRepo {
           where: {
             ...args.where,
             deletedAt: null,
-            ...(orgId && {
-              organisations: {
-                some: {
-                  orgId,
-                },
-              },
-            }),
+            ...(orgId && { orgId }),
           },
           select: {
             comments: {
