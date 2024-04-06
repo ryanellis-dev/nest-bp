@@ -1,9 +1,14 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
+import { PaginationQueryDto } from 'src/common/dto/pagination-query.dto';
 import { getUserOrThrow } from 'src/common/utils/get-user';
 import { CommentsRepo } from './comments.repo';
 import { CreateCommentDto } from './dto/create-comment.dto';
 import { UpdateCommentDto } from './dto/update-comment.dto';
-import { Comment, ManyPostComments, PostComment } from './model/comment.model';
+import {
+  Comment,
+  PaginatedPostComments,
+  PostComment,
+} from './model/comment.model';
 
 @Injectable()
 export class CommentsService {
@@ -46,15 +51,23 @@ export class CommentsService {
     return new Comment(comment);
   }
 
-  async getComments(postId: string): Promise<ManyPostComments> {
-    const comments = await this.commentsRepo.getPostComments({
+  async getComments(
+    postId: string,
+    { limit, offset }: PaginationQueryDto,
+  ): Promise<PaginatedPostComments> {
+    const resp = await this.commentsRepo.getPostComments({
       where: {
         id: postId,
       },
+      take: limit,
+      skip: offset,
     });
-    if (comments === null) throw new NotFoundException();
+    if (resp.comments === undefined) throw new NotFoundException();
     return {
-      results: comments.map((c) => new PostComment(c)),
+      results: resp.comments.map((c) => new PostComment(c)),
+      limit,
+      offset,
+      total: resp.total,
     };
   }
 

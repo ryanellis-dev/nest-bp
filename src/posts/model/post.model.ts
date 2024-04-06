@@ -1,6 +1,7 @@
 import { ApiHideProperty, ApiProperty } from '@nestjs/swagger';
 import { Exclude, Expose } from 'class-transformer';
 import { Many } from 'src/common/model/many.model';
+import { Paginated } from 'src/common/model/paginated.model';
 
 export class Post {
   /**
@@ -44,3 +45,5 @@ export class Post {
 }
 
 export class ManyPosts extends Many(Post) {}
+
+export class PaginatedPosts extends Paginated(Post) {}

@@ -1,6 +1,7 @@
 import { Injectable } from '@nestjs/common';
+import { PaginationQueryDto } from 'src/common/dto/pagination-query.dto';
 import { CreateUserDto } from './dto/create-user.dto';
-import { ManyUsers, User } from './model/user.model';
+import { PaginatedUsers, User } from './model/user.model';
 import { UsersRepo } from './users.repo';
 
 @Injectable()
@@ -15,8 +16,16 @@ export class UsersService {
     await this.usersRepo.deleteUser({ where: { id: userId } });
   }
 
-  async getUsers(): Promise<ManyUsers> {
-    const users = await this.usersRepo.getUsers({});
-    return { results: users.map((u) => new User(u)) };
+  async getUsers({
+    limit,
+    offset,
+  }: PaginationQueryDto): Promise<PaginatedUsers> {
+    const resp = await this.usersRepo.getUsers({ take: limit, skip: offset });
+    return {
+      results: resp.users.map((u) => new User(u)),
+      limit,
+      offset,
+      total: resp.total,
+    };
   }
 }

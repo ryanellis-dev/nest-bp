@@ -1,6 +1,7 @@
 import { OmitType } from '@nestjs/swagger';
 import { Expose, Type } from 'class-transformer';
 import { Many } from 'src/common/model/many.model';
+import { Paginated } from 'src/common/model/paginated.model';
 import { User } from 'src/users/model/user.model';
 
 export class Comment {
@@ -40,5 +41,7 @@ export class PostComment extends OmitType(Comment, ['postId']) {
     Object.assign(this, data);
   }
 }
+
+export class PaginatedPostComments extends Paginated(PostComment) {}
 
 export class ManyPostComments extends Many(PostComment) {}

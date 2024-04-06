@@ -1,9 +1,10 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
+import { PaginationQueryDto } from 'src/common/dto/pagination-query.dto';
 import { getUserOrThrow } from 'src/common/utils/get-user';
 import { CreatePostDto } from './dto/create-post.dto';
 import { GetPostsQueryDto } from './dto/get-posts-query.dto';
 import { UpdatePostDto } from './dto/update-post.dto';
-import { ManyPosts, Post } from './model/post.model';
+import { PaginatedPosts, Post } from './model/post.model';
 import { PostsRepo } from './posts.repo';
 
 @Injectable()
@@ -55,8 +56,11 @@ export class PostsService {
     return new Post(post);
   }
 
-  async getPosts(query: GetPostsQueryDto): Promise<ManyPosts> {
-    const posts = await this.postsRepo.getPosts({
+  async getPosts(
+    query: GetPostsQueryDto,
+    { limit, offset }: PaginationQueryDto,
+  ): Promise<PaginatedPosts> {
+    const { posts, total } = await this.postsRepo.getPosts({
       where: {
         ...(query.author && {
           users: {
@@ -68,8 +72,10 @@ export class PostsService {
         }),
       },
       includeAuthor: true,
+      take: limit,
+      skip: offset,
     });
-    return { results: posts.map((p) => new Post(p)) };
+    return { results: posts.map((p) => new Post(p)), limit, offset, total };
   }
 
   async deletePost(postId: string): Promise<void> {

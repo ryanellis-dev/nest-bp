@@ -41,7 +41,7 @@ export class UsersRepo {
 
   async getUser(args: { where: Prisma.UserWhereUniqueInput }) {
     const orgId = getOrgIdFromStore();
-    return this.prisma.user.findFirst({
+    return this.prisma.user.findUnique({
       where: {
         ...args.where,
         ...(orgId && {
@@ -76,19 +76,34 @@ export class UsersRepo {
     });
   }
 
-  async getUsers(args: { where?: Prisma.UserWhereInput }) {
+  async getUsers(args: {
+    where?: Prisma.UserWhereInput;
+    take?: number;
+    skip?: number;
+  }) {
     const orgId = getOrgIdFromStore();
-    return this.prisma.user.findMany({
-      where: {
-        ...args.where,
-        ...(orgId && {
-          organisations: {
-            some: {
-              orgId,
-            },
+    const where = {
+      ...args.where,
+      ...(orgId && {
+        organisations: {
+          some: {
+            orgId,
+          },
+        },
+      }),
+    };
+    return this.prisma.$transaction(async (tx) => {
+      return {
+        users: await tx.user.findMany({
+          where,
+          take: args.take,
+          skip: args.skip,
+          orderBy: {
+            name: 'asc',
           },
         }),
-      },
+        total: await tx.user.count({ where }),
+      };
     });
   }
 

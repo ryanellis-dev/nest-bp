@@ -33,7 +33,7 @@ async function bootstrap() {
     }),
   );
 
-  // Enable Media Type versioning
+  // Enable URI Type versioning
   app.enableVersioning({
     defaultVersion: '1',
     type: VersioningType.URI,

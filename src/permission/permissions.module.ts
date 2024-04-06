@@ -7,13 +7,14 @@ import { PermissionsGuard } from '../common/guards/permissions.guard';
 import { PermissionsService } from './permissions.service';
 
 @Module({
-  imports: [PostsModule, CommentsModule, CaslAbilityFactory],
+  imports: [PostsModule, CommentsModule],
   providers: [
     PermissionsService,
+    CaslAbilityFactory,
     {
       provide: APP_GUARD,
       useClass: PermissionsGuard,
     },
   ],
 })
-export class AuthorisationModule {}
+export class PermissionsModule {}

@@ -74,29 +74,49 @@ export class CommentsRepo {
     });
   }
 
-  async getPostComments(args: { where?: Prisma.PostWhereInput }) {
+  async getPostComments(args: {
+    where?: Prisma.PostWhereInput;
+    take?: number;
+    skip?: number;
+  }) {
     const orgId = getOrgIdFromStore();
-    return (
-      (
-        await this.prisma.post.findFirst({
-          where: {
-            ...args.where,
-            deletedAt: null,
-            ...(orgId && { orgId }),
-          },
-          select: {
-            comments: {
-              where: {
-                deletedAt: null,
-              },
-              include: {
-                author: true,
+    return this.prisma.$transaction(async (tx) => {
+      const postWhere = {
+        ...args.where,
+        deletedAt: null,
+        ...(orgId && {
+          orgId,
+        }),
+      };
+      return {
+        comments: (
+          await tx.post.findFirst({
+            where: postWhere,
+            select: {
+              comments: {
+                where: {
+                  deletedAt: null,
+                },
+                include: {
+                  author: true,
+                },
+                take: args.take,
+                skip: args.skip,
+                orderBy: {
+                  createdAt: 'desc',
+                },
               },
             },
+          })
+        )?.comments,
+        total: await tx.comment.count({
+          where: {
+            post: postWhere,
+            deletedAt: null,
           },
-        })
-      )?.comments || null
-    );
+        }),
+      };
+    });
   }
 
   async userIsCommentAuthor(args: {

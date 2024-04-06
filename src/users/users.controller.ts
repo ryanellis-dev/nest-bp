@@ -1,5 +1,14 @@
-import { Body, Controller, Delete, Get, Param, Post } from '@nestjs/common';
+import {
+  Body,
+  Controller,
+  Delete,
+  Get,
+  Param,
+  Post,
+  Query,
+} from '@nestjs/common';
 import { ApiBearerAuth, ApiTags } from '@nestjs/swagger';
+import { PaginationQueryDto } from 'src/common/dto/pagination-query.dto';
 import { CreateUserDto } from './dto/create-user.dto';
 import { UserParamsDto } from './dto/user-params.dto';
 import { UsersService } from './users.service';
@@ -21,7 +30,7 @@ export class UsersController {
   }
 
   @Get()
-  getUsers() {
-    return this.usersService.getUsers();
+  getUsers(@Query() pagination: PaginationQueryDto) {
+    return this.usersService.getUsers(pagination);
   }
 }

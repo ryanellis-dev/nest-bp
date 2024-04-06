@@ -72,26 +72,44 @@ export class PostsRepo {
     });
   }
 
-  getPosts(args: { where?: Prisma.PostWhereInput; includeAuthor?: boolean }) {
+  getPosts(args: {
+    where?: Prisma.PostWhereInput;
+    includeAuthor?: boolean;
+    take?: number;
+    skip?: number;
+  }) {
     const orgId = getOrgIdFromStore();
     const user = getUserFromStore();
-    return this.prisma.post.findMany({
-      where: {
-        ...args.where,
-        deletedAt: null,
-        ...(orgId && { orgId }),
-        ...(user &&
-          user.orgRole !== EnumOrgRole.Admin && {
-            users: {
-              some: {
-                userId: user.id,
-              },
+    const where = {
+      ...args.where,
+      deletedAt: null,
+      ...(orgId && { orgId }),
+      ...(user &&
+        user.orgRole !== EnumOrgRole.Admin && {
+          users: {
+            some: {
+              userId: user.id,
             },
-          }),
-      },
-      include: {
-        _count: { select: { comments: { where: { deletedAt: null } } } },
-      },
+          },
+        }),
+    };
+    return this.prisma.$transaction(async (tx) => {
+      return {
+        posts: await tx.post.findMany({
+          where,
+          take: args.take,
+          skip: args.skip,
+          orderBy: {
+            createdAt: 'desc',
+          },
+          include: {
+            _count: { select: { comments: { where: { deletedAt: null } } } },
+          },
+        }),
+        total: await tx.post.count({
+          where,
+        }),
+      };
     });
   }
 

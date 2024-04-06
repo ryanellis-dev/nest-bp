@@ -6,9 +6,11 @@ import {
   Param,
   Patch,
   Post,
+  Query,
 } from '@nestjs/common';
 import { ApiBearerAuth, ApiTags } from '@nestjs/swagger';
 import { Require } from 'src/common/decorators/require-permissions.decorator';
+import { PaginationQueryDto } from 'src/common/dto/pagination-query.dto';
 import { Action } from 'src/permission/model/action.model';
 import { Permission } from 'src/permission/model/permission.model';
 import { ResourceType } from 'src/permission/model/resources.model';
@@ -54,7 +56,10 @@ export class CommentsController {
   }
 
   @Get()
-  getComments(@Param() params: PostParamsDto) {
-    return this.commentsService.getComments(params.postId);
+  getComments(
+    @Param() params: PostParamsDto,
+    @Query() pagination: PaginationQueryDto,
+  ) {
+    return this.commentsService.getComments(params.postId, pagination);
   }
 }

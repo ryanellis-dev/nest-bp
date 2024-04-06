@@ -19,7 +19,7 @@ import { CommentsModule } from 'src/comments/comments.module';
 import appConfig from 'src/config/app.config';
 import { HealthModule } from 'src/health/health.module';
 import { OrganisationsModule } from 'src/organisations/organisations.module';
-import { AuthorisationModule } from 'src/permission/permissions.module';
+import { PermissionsModule } from 'src/permission/permissions.module';
 import { UsersModule } from 'src/users/users.module';
 import { PostsModule } from '../posts/posts.module';
 
@@ -45,7 +45,7 @@ import { PostsModule } from '../posts/posts.module';
       },
     }),
     AuthModule,
-    AuthorisationModule,
+    PermissionsModule,
     PostsModule,
     CommentsModule,
     UsersModule,

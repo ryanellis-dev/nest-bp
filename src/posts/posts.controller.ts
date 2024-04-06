@@ -12,6 +12,7 @@ import {
 import { ApiBearerAuth, ApiTags } from '@nestjs/swagger';
 import { PrismaClientExceptionFilter } from 'nestjs-prisma';
 import { Require } from 'src/common/decorators/require-permissions.decorator';
+import { PaginationQueryDto } from 'src/common/dto/pagination-query.dto';
 import { Action } from 'src/permission/model/action.model';
 import { Permission } from 'src/permission/model/permission.model';
 import { ResourceType } from 'src/permission/model/resources.model';
@@ -48,8 +49,11 @@ export class PostsController {
 
   @Get()
   @Require(new Permission(Action.Read, ResourceType.Post))
-  getPosts(@Query() query: GetPostsQueryDto) {
-    return this.postsService.getPosts(query);
+  getPosts(
+    @Query() query: GetPostsQueryDto,
+    @Query() pagination: PaginationQueryDto,
+  ) {
+    return this.postsService.getPosts(query, pagination);
   }
 
   @Delete('/:postId')
