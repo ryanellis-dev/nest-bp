@@ -119,21 +119,11 @@ export class CommentsRepo {
     });
   }
 
-  async userIsCommentAuthor(args: {
-    userWhere: Prisma.UserWhereUniqueInput;
-    commentWhere: Prisma.CommentWhereUniqueInput;
-  }) {
+  getComment(args: { where: Prisma.CommentWhereUniqueInput }) {
     const orgId = getOrgIdFromStore();
-    return (
-      (await this.prisma.comment.count({
-        where: {
-          ...args.commentWhere,
-          post: {
-            orgId,
-          },
-          author: args.userWhere,
-        },
-      })) > 0
-    );
+    return this.prisma.comment.findFirst({
+      where: { ...args.where, ...(orgId && { post: { orgId } }) },
+      include: { author: true },
+    });
   }
 }

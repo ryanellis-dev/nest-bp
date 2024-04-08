@@ -4,7 +4,7 @@ import { getUserOrThrow } from 'src/common/utils/get-user';
 import { CreatePostDto } from './dto/create-post.dto';
 import { GetPostsQueryDto } from './dto/get-posts-query.dto';
 import { UpdatePostDto } from './dto/update-post.dto';
-import { PaginatedPosts, Post } from './model/post.model';
+import { PaginatedPosts, Post, PostWithUsers } from './model/post.model';
 import { PostsRepo } from './posts.repo';
 
 @Injectable()
@@ -50,7 +50,6 @@ export class PostsService {
       where: {
         id: postId,
       },
-      includeAuthor: true,
     });
     if (!post) throw new NotFoundException();
     return new Post(post);
@@ -75,7 +74,12 @@ export class PostsService {
       take: limit,
       skip: offset,
     });
-    return { results: posts.map((p) => new Post(p)), limit, offset, total };
+    return {
+      results: posts.map((p) => new PostWithUsers(p)),
+      limit,
+      offset,
+      total,
+    };
   }
 
   async deletePost(postId: string): Promise<void> {

@@ -1,9 +1,11 @@
 import { Injectable, Logger, NotFoundException } from '@nestjs/common';
+import { plainToInstance } from 'class-transformer';
 import { CaslAbilityFactory } from 'src/casl/casl-ability.factory/casl-ability.factory';
 import { CommentsRepo } from 'src/comments/comments.repo';
 import { getUserOrThrow } from 'src/common/utils/get-user';
-import { Post } from 'src/posts/model/post.model';
+import { PostWithUsers } from 'src/posts/model/post.model';
 import { PostsRepo } from 'src/posts/posts.repo';
+import { Comment } from '../comments/model/comment.model';
 import { Permission } from './model/permission.model';
 import { ResourceType } from './model/resources.model';
 
@@ -19,34 +21,39 @@ export class PermissionsService {
     permission: Permission,
     resourceId?: string,
   ): Promise<boolean> {
-    Logger.log({ permission, resourceId });
     const user = getUserOrThrow();
     if (!user) {
       Logger.error('Could not get user from request context.');
       return false;
     }
+    const ability = this.caslAbilityFactory.createForLoggedInUser(user);
+
     switch (permission.type) {
       case ResourceType.User:
         // TODO: Needs implementation
         return true;
       case ResourceType.Post:
-        const postRole = resourceId
-          ? await this.postsRepo.getPostRoleForUser({
-              postWhere: { id: resourceId },
-              userWhere: {
-                id: user.id,
+        const post = resourceId
+          ? await this.postsRepo.getPost({
+              where: {
+                id: resourceId,
               },
             })
           : undefined;
-        if (postRole === null) throw new NotFoundException();
-        return this.caslAbilityFactory
-          .createForLoggedInUser(user)
-          .can(permission.action, Post);
+        if (post === null) throw new NotFoundException();
+        Logger.log({ permission, resourceId, user, post });
+        return ability.can(
+          permission.action,
+          post ? plainToInstance(PostWithUsers, post) : PostWithUsers,
+        );
       case ResourceType.Comment:
-        return await this.commentsRepo.userIsCommentAuthor({
-          userWhere: { id: user.id },
-          commentWhere: { id: resourceId },
+        const comment = await this.commentsRepo.getComment({
+          where: {
+            id: resourceId,
+          },
         });
+        if (!comment) throw new NotFoundException();
+        return ability.can(permission.action, new Comment(comment));
       default:
         return true;
     }

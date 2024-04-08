@@ -1,33 +1,47 @@
 import {
   AbilityBuilder,
-  AbilityClass,
   ExtractSubjectType,
   InferSubjects,
   PureAbility,
+  createMongoAbility,
 } from '@casl/ability';
 import { Injectable } from '@nestjs/common';
 import { Comment } from 'src/comments/model/comment.model';
 import { Action } from 'src/permission/model/action.model';
 import { EnumOrgRole } from 'src/permission/model/org-role.model';
-import { Post } from 'src/posts/model/post.model';
+import { EnumPostRole } from 'src/permission/model/post-role.model';
+import { PostWithUsers } from 'src/posts/model/post.model';
 import { LoggedInUser } from 'src/users/model/user.model';
 
-type Subjects = InferSubjects<typeof Post | typeof Comment> | 'all';
+type Subjects = InferSubjects<typeof PostWithUsers | typeof Comment> | 'all';
 
 export type AppAbility = PureAbility<[Action, Subjects]>;
 
 @Injectable()
 export class CaslAbilityFactory {
   createForLoggedInUser(user: LoggedInUser) {
-    const { can, cannot, build } = new AbilityBuilder<
-      PureAbility<[Action, Subjects]>
-    >(PureAbility as AbilityClass<AppAbility>);
+    const { can, build } = new AbilityBuilder(createMongoAbility);
 
     if (user.orgRole === EnumOrgRole.Admin) {
       can(Action.Manage, 'all'); // read-write access to everything
     } else {
       can(Action.Read, 'all'); // read-only access to everything
     }
+
+    can(Action.Read, PostWithUsers, {
+      public: true,
+    });
+
+    can(Action.Manage, PostWithUsers, {
+      users: {
+        $elemMatch: {
+          user: {
+            id: user.id,
+          },
+          role: EnumPostRole.Owner,
+        },
+      },
+    });
 
     can(Action.Update, Comment, {
       author: {

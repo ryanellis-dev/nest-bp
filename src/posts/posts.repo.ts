@@ -52,24 +52,27 @@ export class PostsRepo {
     });
   }
 
-  getPost(args: { where?: Prisma.PostWhereInput; includeAuthor?: boolean }) {
+  async getPost(args: { where?: Prisma.PostWhereInput }) {
     const orgId = getOrgIdFromStore();
-    return this.prisma.post.findFirst({
+    const post = await this.prisma.post.findFirst({
       where: {
         ...args.where,
         deletedAt: null,
         ...(orgId && {
-          organisations: {
-            some: {
-              orgId,
-            },
-          },
+          orgId,
         }),
       },
       include: {
         _count: { select: { comments: { where: { deletedAt: null } } } },
+        users: {
+          select: {
+            role: true,
+            user: true,
+          },
+        },
       },
     });
+    return post;
   }
 
   getPosts(args: {
@@ -104,6 +107,12 @@ export class PostsRepo {
           },
           include: {
             _count: { select: { comments: { where: { deletedAt: null } } } },
+            users: {
+              select: {
+                role: true,
+                user: true,
+              },
+            },
           },
         }),
         total: await tx.post.count({
