@@ -1,8 +1,7 @@
 import { ApiHideProperty, ApiProperty } from '@nestjs/swagger';
-import { Exclude, Expose, Transform, Type } from 'class-transformer';
+import { Exclude, Expose, Type } from 'class-transformer';
 import { Many } from 'src/common/model/many.model';
 import { Paginated } from 'src/common/model/paginated.model';
-import { prismaPostRoleToModel } from 'src/permission/dto/post-role.dto';
 import { EnumPostRole } from 'src/permission/model/post-role.model';
 import { User } from 'src/users/model/user.model';
 
@@ -42,7 +41,7 @@ export class Post {
     comments: number;
   };
 
-  constructor(data: Omit<Post, 'commentCount'>) {
+  constructor(data: Partial<Post>) {
     Object.assign(this, data);
   }
 }
@@ -52,7 +51,6 @@ export class PostUser {
   user: User;
 
   @Expose()
-  @Transform(({ value }) => prismaPostRoleToModel(value))
   role: EnumPostRole;
 }
 
@@ -60,6 +58,10 @@ export class PostWithUsers extends Post {
   @Expose()
   @Type(() => PostUser)
   users: PostUser[];
+
+  constructor(data: Partial<PostWithUsers>) {
+    super(data);
+  }
 }
 
 export class ManyPosts extends Many(Post) {}

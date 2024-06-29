@@ -75,7 +75,7 @@ export class PostsRepo {
     return post;
   }
 
-  getPosts(args: {
+  async getPosts(args: {
     where?: Prisma.PostWhereInput;
     includeAuthor?: boolean;
     take?: number;
@@ -96,30 +96,31 @@ export class PostsRepo {
           },
         }),
     };
-    return this.prisma.$transaction(async (tx) => {
-      return {
-        posts: await tx.post.findMany({
-          where,
-          take: args.take,
-          skip: args.skip,
-          orderBy: {
-            createdAt: 'desc',
-          },
-          include: {
-            _count: { select: { comments: { where: { deletedAt: null } } } },
-            users: {
-              select: {
-                role: true,
-                user: true,
-              },
+
+    const [posts, total] = await this.prisma.$transaction([
+      this.prisma.post.findMany({
+        where,
+        take: args.take,
+        skip: args.skip,
+        orderBy: {
+          createdAt: 'desc',
+        },
+        include: {
+          _count: { select: { comments: { where: { deletedAt: null } } } },
+          users: {
+            select: {
+              role: true,
+              user: true,
             },
           },
-        }),
-        total: await tx.post.count({
-          where,
-        }),
-      };
-    });
+        },
+      }),
+      this.prisma.post.count({
+        where,
+      }),
+    ]);
+
+    return { posts, total };
   }
 
   deletePost(args: { where: Prisma.PostWhereUniqueInput }) {

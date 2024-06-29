@@ -22,10 +22,10 @@ export class CaslAbilityFactory {
   createForLoggedInUser(user: LoggedInUser) {
     const { can, build } = new AbilityBuilder(createMongoAbility);
 
+    can(Action.Read, Comment);
+
     if (user.orgRole === EnumOrgRole.Admin) {
       can(Action.Manage, 'all'); // read-write access to everything
-    } else {
-      can(Action.Read, 'all'); // read-only access to everything
     }
 
     can(Action.Read, PostWithUsers, {
@@ -39,6 +39,16 @@ export class CaslAbilityFactory {
             id: user.id,
           },
           role: EnumPostRole.Owner,
+        },
+      },
+    });
+    can(Action.Update, PostWithUsers, {
+      users: {
+        $elemMatch: {
+          user: {
+            id: user.id,
+          },
+          role: EnumPostRole.Editor,
         },
       },
     });

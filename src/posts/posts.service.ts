@@ -1,6 +1,7 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
 import { PaginationQueryDto } from 'src/common/dto/pagination-query.dto';
 import { getUserOrThrow } from 'src/common/utils/get-user';
+import { prismaPostRoleToModel } from 'src/permission/dto/post-role.dto';
 import { CreatePostDto } from './dto/create-post.dto';
 import { GetPostsQueryDto } from './dto/get-posts-query.dto';
 import { UpdatePostDto } from './dto/update-post.dto';
@@ -75,7 +76,16 @@ export class PostsService {
       skip: offset,
     });
     return {
-      results: posts.map((p) => new PostWithUsers(p)),
+      results: posts.map(
+        (p) =>
+          new PostWithUsers({
+            ...p,
+            users: p.users.map((u) => ({
+              ...u,
+              role: prismaPostRoleToModel(u.role),
+            })),
+          }),
+      ),
       limit,
       offset,
       total,

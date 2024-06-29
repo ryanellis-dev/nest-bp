@@ -16,5 +16,5 @@ export class Permission {
 }
 
 export function allActionsToString(resourceType: ResourceType) {
-  return `${Action.All}:${resourceType}`;
+  return `${Action.Manage}:${resourceType}`;
 }

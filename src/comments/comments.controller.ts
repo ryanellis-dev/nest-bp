@@ -56,6 +56,7 @@ export class CommentsController {
   }
 
   @Get()
+  @Require(new Permission(Action.Read, ResourceType.Comment))
   getComments(
     @Param() params: PostParamsDto,
     @Query() pagination: PaginationQueryDto,
