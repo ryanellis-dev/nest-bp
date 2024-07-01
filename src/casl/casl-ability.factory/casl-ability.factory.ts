@@ -10,10 +10,10 @@ import { Comment } from 'src/comments/model/comment.model';
 import { Action } from 'src/permission/model/action.model';
 import { EnumOrgRole } from 'src/permission/model/org-role.model';
 import { EnumPostRole } from 'src/permission/model/post-role.model';
-import { PostWithUsers } from 'src/posts/model/post.model';
+import { PostWithRole } from 'src/posts/model/post.model';
 import { LoggedInUser } from 'src/users/model/user.model';
 
-type Subjects = InferSubjects<typeof PostWithUsers | typeof Comment> | 'all';
+type Subjects = InferSubjects<typeof PostWithRole | typeof Comment> | 'all';
 
 export type AppAbility = PureAbility<[Action, Subjects]>;
 
@@ -28,29 +28,20 @@ export class CaslAbilityFactory {
       can(Action.Manage, 'all'); // read-write access to everything
     }
 
-    can(Action.Read, PostWithUsers, {
+    can(Action.Read, PostWithRole, {
       public: true,
     });
 
-    can(Action.Manage, PostWithUsers, {
-      users: {
-        $elemMatch: {
-          user: {
-            id: user.id,
-          },
-          role: EnumPostRole.Owner,
-        },
-      },
+    can(Action.Read, PostWithRole, {
+      role: { $in: [EnumPostRole.Reader, EnumPostRole.Editor] },
     });
-    can(Action.Update, PostWithUsers, {
-      users: {
-        $elemMatch: {
-          user: {
-            id: user.id,
-          },
-          role: EnumPostRole.Editor,
-        },
-      },
+
+    can(Action.Manage, PostWithRole, {
+      role: EnumPostRole.Owner,
+    });
+
+    can(Action.Update, PostWithRole, {
+      role: EnumPostRole.Editor,
     });
 
     can(Action.Update, Comment, {

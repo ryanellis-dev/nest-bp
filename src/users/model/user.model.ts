@@ -42,5 +42,6 @@ export class LoggedInUser extends User {
 
   constructor(data: LoggedInUser) {
     super(data);
+    Object.assign(this, data);
   }
 }

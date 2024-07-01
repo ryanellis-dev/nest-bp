@@ -1,11 +1,13 @@
 import { Injectable, Logger, NotFoundException } from '@nestjs/common';
+import { ClsService } from 'nestjs-cls';
 import { CaslAbilityFactory } from 'src/casl/casl-ability.factory/casl-ability.factory';
 import { CommentsRepo } from 'src/comments/comments.repo';
+import { TypedClsStore } from 'src/common/types/cls.types';
 import { getUserOrThrow } from 'src/common/utils/get-user';
-import { PostWithUsers } from 'src/posts/model/post.model';
+import { PostWithRole } from 'src/posts/model/post.model';
 import { PostsRepo } from 'src/posts/posts.repo';
 import { Comment } from '../comments/model/comment.model';
-import { prismaPostRoleToModel } from './dto/post-role.dto';
+import { transformPostWithRole } from './dto/post-role.dto';
 import { Permission } from './model/permission.model';
 import { ResourceType } from './model/resources.model';
 
@@ -15,7 +17,14 @@ export class PermissionsService {
     private postsRepo: PostsRepo,
     private commentsRepo: CommentsRepo,
     private caslAbilityFactory: CaslAbilityFactory,
+    private cls: ClsService<TypedClsStore>,
   ) {}
+
+  setContext(permission: Permission, resource: any) {
+    if (!this.cls.get('permissions')?.push({ permission, resource })) {
+      this.cls.set('permissions', [{ permission, resource }]);
+    }
+  }
 
   async checkPermission(
     permission: Permission,
@@ -32,27 +41,26 @@ export class PermissionsService {
       case ResourceType.User:
         // TODO: Needs implementation
         return true;
+
       case ResourceType.Post:
         const post = resourceId
-          ? await this.postsRepo.getPost({
+          ? await this.postsRepo.getPostWithRole({
               where: {
                 id: resourceId,
               },
+              userId: user.id,
             })
           : undefined;
         if (post === null) throw new NotFoundException();
+
+        post &&
+          this.setContext(permission, transformPostWithRole(post, user.id));
+
         return ability.can(
           permission.action,
-          post
-            ? new PostWithUsers({
-                ...post,
-                users: post.users.map((u) => ({
-                  ...u,
-                  role: prismaPostRoleToModel(u.role),
-                })),
-              })
-            : PostWithUsers,
+          post ? transformPostWithRole(post, user.id) : PostWithRole,
         );
+
       case ResourceType.Comment:
         const comment = await this.commentsRepo.getComment({
           where: {
@@ -60,7 +68,10 @@ export class PermissionsService {
           },
         });
         if (!comment) throw new NotFoundException();
+
+        this.setContext(permission, new Comment(comment));
         return ability.can(permission.action, new Comment(comment));
+
       default:
         return true;
     }

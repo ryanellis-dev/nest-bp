@@ -8,11 +8,11 @@ import {
 import { ConfigType } from '@nestjs/config';
 import { Reflector } from '@nestjs/core';
 import { JwtService } from '@nestjs/jwt';
+import { instanceToInstance } from 'class-transformer';
 import { Request } from 'express';
 import { ClsService } from 'nestjs-cls';
 import appConfig from 'src/config/app.config';
-import { prismaOrgRoleToModel } from 'src/permission/dto/org-role.dto';
-import { LoggedInUser } from 'src/users/model/user.model';
+import { transformLoggedInUser } from 'src/users/dto/logged-in-user.dto';
 import { UsersRepo } from 'src/users/users.repo';
 import { BYPASS_AUTH_KEY } from '../decorators/bypass-auth.decorator';
 import { AuthPayload } from '../types/auth.types';
@@ -51,13 +51,10 @@ export class AuthGuard implements CanActivate {
         orgId: payload.orgId,
       });
       if (!user) throw new UnauthorizedException();
-      const org = user.organisations[0];
       this.cls.set(
         'user',
-        new LoggedInUser({
-          ...user,
-          orgId: org.orgId,
-          orgRole: prismaOrgRoleToModel(org.role),
+        instanceToInstance(transformLoggedInUser(user), {
+          excludeExtraneousValues: true,
         }),
       );
     } catch {

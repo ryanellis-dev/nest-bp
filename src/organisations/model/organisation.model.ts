@@ -8,7 +8,7 @@ export class Organisation {
   @Expose() id: string;
 
   /**
-   * @example "John Doe"
+   * @example "Delta"
    */
   @Expose() name: string;
 }

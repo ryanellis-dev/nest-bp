@@ -1,5 +1,5 @@
 import { Injectable } from '@nestjs/common';
-import { PostRole, Prisma } from '@prisma/client';
+import { Prisma } from '@prisma/client';
 import { PrismaService } from 'nestjs-prisma';
 import { getOrgIdFromStore } from 'src/common/utils/get-orgId';
 import { getUserFromStore } from 'src/common/utils/get-user';
@@ -64,10 +64,33 @@ export class PostsRepo {
       },
       include: {
         _count: { select: { comments: { where: { deletedAt: null } } } },
+      },
+    });
+    return post;
+  }
+
+  async getPostWithRole(args: {
+    where?: Prisma.PostWhereInput;
+    userId: string;
+  }) {
+    const orgId = getOrgIdFromStore();
+    const post = await this.prisma.post.findFirst({
+      where: {
+        ...args.where,
+        deletedAt: null,
+        ...(orgId && {
+          orgId,
+        }),
+      },
+      include: {
+        _count: { select: { comments: { where: { deletedAt: null } } } },
         users: {
+          where: {
+            userId: args.userId,
+          },
           select: {
+            userId: true,
             role: true,
-            user: true,
           },
         },
       },
@@ -77,7 +100,7 @@ export class PostsRepo {
 
   async getPosts(args: {
     where?: Prisma.PostWhereInput;
-    includeAuthor?: boolean;
+    includeUser?: boolean;
     take?: number;
     skip?: number;
   }) {
@@ -107,10 +130,67 @@ export class PostsRepo {
         },
         include: {
           _count: { select: { comments: { where: { deletedAt: null } } } },
+          ...(args.includeUser &&
+            user && {
+              users: {
+                where: {
+                  userId: user.id,
+                },
+                select: {
+                  user: true,
+                  role: true,
+                },
+              },
+            }),
+        },
+      }),
+      this.prisma.post.count({
+        where,
+      }),
+    ]);
+
+    return { posts, total };
+  }
+
+  async getPostsWithRole(args: {
+    where?: Prisma.PostWhereInput;
+    take?: number;
+    skip?: number;
+    userId: string;
+  }) {
+    const orgId = getOrgIdFromStore();
+    const user = getUserFromStore();
+    const where = {
+      ...args.where,
+      deletedAt: null,
+      ...(orgId && { orgId }),
+      ...(user &&
+        user.orgRole !== EnumOrgRole.Admin && {
           users: {
+            some: {
+              userId: user.id,
+            },
+          },
+        }),
+    };
+
+    const [posts, total] = await this.prisma.$transaction([
+      this.prisma.post.findMany({
+        where,
+        take: args.take,
+        skip: args.skip,
+        orderBy: {
+          createdAt: 'desc',
+        },
+        include: {
+          _count: { select: { comments: { where: { deletedAt: null } } } },
+          users: {
+            where: {
+              userId: args.userId,
+            },
             select: {
+              userId: true,
               role: true,
-              user: true,
             },
           },
         },
@@ -153,7 +233,7 @@ export class PostsRepo {
     userWhere: Prisma.UserWhereUniqueInput;
   }) {
     const orgId = getOrgIdFromStore();
-    const userOnPost = await this.prisma.usersOnPosts.findFirst({
+    const usersOnPosts = await this.prisma.usersOnPosts.findFirst({
       where: {
         post: {
           ...args.postWhere,
@@ -172,16 +252,8 @@ export class PostsRepo {
       },
       select: {
         role: true,
-        post: {
-          select: {
-            public: true,
-          },
-        },
       },
     });
-    // If post is public assume reader role
-    return (
-      userOnPost?.role || (userOnPost?.post.public && PostRole.READER) || null
-    );
+    return usersOnPosts?.role || null;
   }
 }

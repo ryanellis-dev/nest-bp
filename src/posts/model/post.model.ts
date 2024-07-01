@@ -1,5 +1,5 @@
 import { ApiHideProperty, ApiProperty } from '@nestjs/swagger';
-import { Exclude, Expose, Type } from 'class-transformer';
+import { Exclude, Expose } from 'class-transformer';
 import { Many } from 'src/common/model/many.model';
 import { Paginated } from 'src/common/model/paginated.model';
 import { EnumPostRole } from 'src/permission/model/post-role.model';
@@ -54,16 +54,16 @@ export class PostUser {
   role: EnumPostRole;
 }
 
-export class PostWithUsers extends Post {
+export class PostWithRole extends Post {
   @Expose()
-  @Type(() => PostUser)
-  users: PostUser[];
+  role: EnumPostRole | null;
 
-  constructor(data: Partial<PostWithUsers>) {
+  constructor(data: Partial<PostWithRole>) {
     super(data);
+    Object.assign(this, data);
   }
 }
 
 export class ManyPosts extends Many(Post) {}
 
-export class PaginatedPosts extends Paginated(PostWithUsers) {}
+export class PaginatedPosts extends Paginated(PostWithRole) {}

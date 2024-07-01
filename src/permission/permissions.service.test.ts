@@ -4,7 +4,8 @@ import 'reflect-metadata';
 import { CaslAbilityFactory } from 'src/casl/casl-ability.factory/casl-ability.factory';
 import * as getUser from 'src/common/utils/get-user';
 import { PostsRepo } from 'src/posts/posts.repo';
-import { LoggedInUser, User } from 'src/users/model/user.model';
+import { LoggedInUser } from 'src/users/model/user.model';
+import { mockPrismaPosts, mockPrismaUsers } from 'test/mocks';
 import { beforeEach, describe, it, vi } from 'vitest';
 import { Action } from './model/action.model';
 import { EnumOrgRole } from './model/org-role.model';
@@ -28,33 +29,27 @@ describe('PermissionsService', () => {
 
   describe('checkPermission', () => {
     it('should allow a user to read their own posts', async () => {
-      const mockedUser: User = { id: 'userId', name: 'Name', email: 'email' };
-      const mockedLoggedInUser: LoggedInUser = {
-        ...mockedUser,
+      const mockUser = mockPrismaUsers[0];
+      const mockLoggedInUser: LoggedInUser = {
+        ...mockUser,
         orgId: 'orgId',
-        orgRole: EnumOrgRole.Member,
+        orgRole: EnumOrgRole.Admin,
       };
-      const mockedPost: Awaited<ReturnType<typeof postsRepo.getPost>> = {
+      const mockPost: Awaited<ReturnType<typeof postsRepo.getPostWithRole>> = {
+        ...mockPrismaPosts[0],
         users: [
           {
             role: 'OWNER',
-            user: { ...mockedUser, sub: null, id: 'userId2' },
+            userId: mockLoggedInUser.id,
           },
         ],
-        id: 'post1',
-        title: 'Post Title',
-        body: 'Post Body',
-        public: false,
-        createdAt: new Date(),
         _count: {
           comments: 10,
         },
-        deletedAt: null,
-        orgId: null,
       };
-      vi.spyOn(postsRepo, 'getPost').mockResolvedValue(mockedPost);
+      vi.spyOn(postsRepo, 'getPostWithRole').mockResolvedValue(mockPost);
       vi.spyOn(getUser, 'getUserOrThrow').mockImplementation(
-        () => mockedLoggedInUser,
+        () => mockLoggedInUser,
       );
 
       expect(
@@ -63,7 +58,7 @@ describe('PermissionsService', () => {
             action: Action.Read,
             type: ResourceType.Post,
           },
-          mockedPost.id,
+          mockPost.id,
         ),
       ).toBe(true);
     });

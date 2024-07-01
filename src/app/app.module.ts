@@ -16,6 +16,8 @@ import {
 } from 'nestjs-prisma';
 import { AuthModule } from 'src/auth/auth.module';
 import { CommentsModule } from 'src/comments/comments.module';
+import { getPermissionsFromStore } from 'src/common/utils/get-permissions';
+import { getUserFromStore } from 'src/common/utils/get-user';
 import appConfig from 'src/config/app.config';
 import { HealthModule } from 'src/health/health.module';
 import { OrganisationsModule } from 'src/organisations/organisations.module';
@@ -28,10 +30,24 @@ import { PostsModule } from '../posts/posts.module';
     ConfigModule.forRoot({ isGlobal: true, cache: true, load: [appConfig] }),
     LoggerModule.forRoot({
       exclude: ['/health'],
+      pinoHttp: {
+        customProps() {
+          const user = getUserFromStore();
+          const permissions = getPermissionsFromStore();
+          return {
+            ...(user && { user }),
+            ...(permissions && { permissions }),
+          };
+        },
+        redact: ['req.headers.authorization'],
+        customReceivedMessage() {
+          return 'request received';
+        },
+      },
     }),
     ClsModule.forRoot({
       global: true,
-      middleware: { mount: true },
+      middleware: { mount: false },
     }),
     PrismaModule.forRoot({
       isGlobal: true,

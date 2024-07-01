@@ -1,11 +1,11 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
 import { PaginationQueryDto } from 'src/common/dto/pagination-query.dto';
 import { getUserOrThrow } from 'src/common/utils/get-user';
-import { prismaPostRoleToModel } from 'src/permission/dto/post-role.dto';
+import { transformPostWithRole } from 'src/permission/dto/post-role.dto';
 import { CreatePostDto } from './dto/create-post.dto';
 import { GetPostsQueryDto } from './dto/get-posts-query.dto';
 import { UpdatePostDto } from './dto/update-post.dto';
-import { PaginatedPosts, Post, PostWithUsers } from './model/post.model';
+import { PaginatedPosts, Post, PostWithRole } from './model/post.model';
 import { PostsRepo } from './posts.repo';
 
 @Injectable()
@@ -46,21 +46,24 @@ export class PostsService {
     );
   }
 
-  async getPost(postId: string): Promise<Post> {
-    const post = await this.postsRepo.getPost({
+  async getPost(postId: string): Promise<PostWithRole> {
+    const user = getUserOrThrow();
+    const post = await this.postsRepo.getPostWithRole({
       where: {
         id: postId,
       },
+      userId: user.id,
     });
     if (!post) throw new NotFoundException();
-    return new Post(post);
+    return transformPostWithRole(post, user.id);
   }
 
   async getPosts(
     query: GetPostsQueryDto,
     { limit, offset }: PaginationQueryDto,
   ): Promise<PaginatedPosts> {
-    const { posts, total } = await this.postsRepo.getPosts({
+    const user = getUserOrThrow();
+    const { posts, total } = await this.postsRepo.getPostsWithRole({
       where: {
         ...(query.author && {
           users: {
@@ -71,21 +74,12 @@ export class PostsService {
           },
         }),
       },
-      includeAuthor: true,
       take: limit,
       skip: offset,
+      userId: user.id,
     });
     return {
-      results: posts.map(
-        (p) =>
-          new PostWithUsers({
-            ...p,
-            users: p.users.map((u) => ({
-              ...u,
-              role: prismaPostRoleToModel(u.role),
-            })),
-          }),
-      ),
+      results: posts.map((p) => transformPostWithRole(p, user.id)),
       limit,
       offset,
       total,
