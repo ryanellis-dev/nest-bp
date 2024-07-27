@@ -1,0 +1,28 @@
+model Post {
+  id           String         @id @default(uuid())
+  title        String
+  public       Boolean        @default(false)
+  body         String
+  comments     Comment[]
+  createdAt    DateTime       @default(now())
+  deletedAt    DateTime?
+  organisation Organisation?  @relation(fields: [orgId], references: [id])
+  orgId        String?
+  users        UsersOnPosts[]
+}
+
+enum PostRole {
+  OWNER
+  EDITOR
+  READER
+}
+
+model UsersOnPosts {
+  post   Post     @relation(fields: [postId], references: [id], onDelete: Cascade)
+  postId String
+  user   User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  userId String
+  role   PostRole @default(READER)
+
+  @@id([postId, userId])
+}

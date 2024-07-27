@@ -1,12 +1,14 @@
 import { Injectable, Logger, NotFoundException } from '@nestjs/common';
 import { ClsService } from 'nestjs-cls';
-import { CaslAbilityFactory } from 'src/casl/casl-ability.factory/casl-ability.factory';
-import { CommentsRepo } from 'src/comments/comments.repo';
 import { TypedClsStore } from 'src/common/types/cls.types';
 import { getUserOrThrow } from 'src/common/utils/get-user';
+import { CommentsRepo } from 'src/posts/comments/comments.repo';
 import { PostWithRole } from 'src/posts/model/post.model';
 import { PostsRepo } from 'src/posts/posts.repo';
-import { Comment } from '../comments/model/comment.model';
+import { Site } from 'src/sites/model/site.model';
+import { SitesRepo } from 'src/sites/sites.repo';
+import { Comment } from '../posts/comments/model/comment.model';
+import { CaslAbilityFactory } from './casl/casl-ability.factory/casl-ability.factory';
 import { transformPostWithRole } from './dto/post-role.dto';
 import { Permission } from './model/permission.model';
 import { ResourceType } from './model/resources.model';
@@ -16,6 +18,7 @@ export class PermissionsService {
   constructor(
     private postsRepo: PostsRepo,
     private commentsRepo: CommentsRepo,
+    private sitesRepo: SitesRepo,
     private caslAbilityFactory: CaslAbilityFactory,
     private cls: ClsService<TypedClsStore>,
   ) {}
@@ -71,6 +74,15 @@ export class PermissionsService {
 
         this.setContext(permission, new Comment(comment));
         return ability.can(permission.action, new Comment(comment));
+
+      case ResourceType.Site:
+        const site = await this.sitesRepo.getSite({
+          where: { id: resourceId },
+        });
+        if (!site) throw new NotFoundException();
+
+        this.setContext(permission, new Site(site));
+        return ability.can(permission.action, new Site(site));
 
       default:
         return true;

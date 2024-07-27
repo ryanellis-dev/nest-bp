@@ -15,13 +15,14 @@ import {
   providePrismaClientExceptionFilter,
 } from 'nestjs-prisma';
 import { AuthModule } from 'src/auth/auth.module';
-import { CommentsModule } from 'src/comments/comments.module';
 import { getPermissionsFromStore } from 'src/common/utils/get-permissions';
 import { getUserFromStore } from 'src/common/utils/get-user';
 import appConfig from 'src/config/app.config';
 import { HealthModule } from 'src/health/health.module';
 import { OrganisationsModule } from 'src/organisations/organisations.module';
 import { PermissionsModule } from 'src/permission/permissions.module';
+import { CommentsModule } from 'src/posts/comments/comments.module';
+import { SitesModule } from 'src/sites/sites.module';
 import { UsersModule } from 'src/users/users.module';
 import { PostsModule } from '../posts/posts.module';
 
@@ -60,13 +61,14 @@ import { PostsModule } from '../posts/posts.module';
         ],
       },
     }),
+    HealthModule,
     AuthModule,
     PermissionsModule,
+    OrganisationsModule,
+    UsersModule,
     PostsModule,
     CommentsModule,
-    UsersModule,
-    OrganisationsModule,
-    HealthModule,
+    SitesModule,
   ],
   providers: [
     providePrismaClientExceptionFilter({

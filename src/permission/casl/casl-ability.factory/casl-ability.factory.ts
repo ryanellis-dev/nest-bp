@@ -6,10 +6,10 @@ import {
   createMongoAbility,
 } from '@casl/ability';
 import { Injectable } from '@nestjs/common';
-import { Comment } from 'src/comments/model/comment.model';
 import { Action } from 'src/permission/model/action.model';
 import { EnumOrgRole } from 'src/permission/model/org-role.model';
 import { EnumPostRole } from 'src/permission/model/post-role.model';
+import { Comment } from 'src/posts/comments/model/comment.model';
 import { PostWithRole } from 'src/posts/model/post.model';
 import { LoggedInUser } from 'src/users/model/user.model';
 

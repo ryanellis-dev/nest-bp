@@ -1,0 +1,27 @@
+model Organisation {
+  id   String @id @default(uuid())
+  name String
+
+  posts Post[]
+  users OrganisationsUsers[]
+  sites Site[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+enum OrgRole {
+  ADMIN
+  MEMBER
+}
+
+model OrganisationsUsers {
+  role OrgRole @default(MEMBER)
+
+  organisation Organisation @relation(fields: [orgId], references: [id], onDelete: Cascade)
+  orgId        String
+  user         User         @relation(fields: [userId], references: [id], onDelete: Cascade)
+  userId       String
+
+  @@id([orgId, userId])
+}
