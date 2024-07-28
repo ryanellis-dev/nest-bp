@@ -5,6 +5,7 @@ export class Site {
   @Expose() id: string;
   @Expose() name: string;
   @Expose() createdAt: Date;
+  @Expose() updatedAt: Date;
 
   constructor(data: Partial<Site>) {
     Object.assign(this, data);

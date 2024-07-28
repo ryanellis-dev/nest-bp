@@ -37,7 +37,6 @@ export class LoggedInUser extends User {
    */
   @Expose() orgId: string | null;
 
-  //TODO: docs
   @Expose() orgRole: EnumOrgRole;
 
   constructor(data: LoggedInUser) {

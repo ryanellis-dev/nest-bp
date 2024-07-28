@@ -4,6 +4,7 @@ import { getUserOrThrow } from 'src/common/utils/get-user';
 import { transformPostWithRole } from 'src/permission/dto/post-role.dto';
 import { CreatePostDto } from './dto/create-post.dto';
 import { GetPostsQueryDto } from './dto/get-posts-query.dto';
+import { PostParamsDto } from './dto/post-params.dto';
 import { UpdatePostDto } from './dto/update-post.dto';
 import { PaginatedPosts, Post, PostWithRole } from './model/post.model';
 import { PostsRepo } from './posts.repo';
@@ -34,7 +35,10 @@ export class PostsService {
     );
   }
 
-  async updatePost(postId: string, data: UpdatePostDto): Promise<Post> {
+  async updatePost(
+    { postId }: PostParamsDto,
+    data: UpdatePostDto,
+  ): Promise<Post> {
     return new Post(
       await this.postsRepo.updatePost({
         where: {
@@ -46,7 +50,7 @@ export class PostsService {
     );
   }
 
-  async getPost(postId: string): Promise<PostWithRole> {
+  async getPost({ postId }: PostParamsDto): Promise<PostWithRole> {
     const user = getUserOrThrow();
     const post = await this.postsRepo.getPostWithRole({
       where: {
@@ -86,7 +90,7 @@ export class PostsService {
     };
   }
 
-  async deletePost(postId: string): Promise<void> {
+  async deletePost({ postId }: PostParamsDto): Promise<void> {
     await this.postsRepo.deletePost({
       where: {
         id: postId,

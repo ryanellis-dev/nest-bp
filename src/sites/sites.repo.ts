@@ -26,6 +26,24 @@ export class SitesRepo {
     });
   }
 
+  updateSite(args: {
+    where: Prisma.SiteWhereUniqueInput;
+    data: Omit<Prisma.SiteCreateInput, 'organisation'>;
+  }) {
+    const orgId = getOrgIdFromStore();
+    return this.prisma.site.update({
+      where: {
+        ...args.where,
+        ...(orgId && {
+          organisation: {
+            id: orgId,
+          },
+        }),
+      },
+      data: args.data,
+    });
+  }
+
   getSite(args: { where: Prisma.SiteWhereInput }) {
     const orgId = getOrgIdFromStore();
     return this.prisma.site.findFirst({

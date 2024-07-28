@@ -38,13 +38,13 @@ export class PostsController {
   @Patch('/:postId')
   @Require(new Permission(Action.Update, ResourceType.Post))
   updatePost(@Param() params: PostParamsDto, @Body() data: UpdatePostDto) {
-    return this.postsService.updatePost(params.postId, data);
+    return this.postsService.updatePost(params, data);
   }
 
   @Get('/:postId')
   @Require(new Permission(Action.Read, ResourceType.Post))
   getPost(@Param() params: PostParamsDto) {
-    return this.postsService.getPost(params.postId);
+    return this.postsService.getPost(params);
   }
 
   @Get()
@@ -59,6 +59,6 @@ export class PostsController {
   @Delete('/:postId')
   @Require(new Permission(Action.Delete, ResourceType.Post))
   deletePost(@Param() params: PostParamsDto) {
-    return this.postsService.deletePost(params.postId);
+    return this.postsService.deletePost(params);
   }
 }

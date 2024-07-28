@@ -76,13 +76,15 @@ export class PermissionsService {
         return ability.can(permission.action, new Comment(comment));
 
       case ResourceType.Site:
-        const site = await this.sitesRepo.getSite({
-          where: { id: resourceId },
-        });
-        if (!site) throw new NotFoundException();
+        const site = resourceId
+          ? await this.sitesRepo.getSite({
+              where: { id: resourceId },
+            })
+          : undefined;
+        if (site === null) throw new NotFoundException();
 
-        this.setContext(permission, new Site(site));
-        return ability.can(permission.action, new Site(site));
+        site && this.setContext(permission, new Site(site));
+        return ability.can(permission.action, site ? new Site(site) : Site);
 
       default:
         return true;
