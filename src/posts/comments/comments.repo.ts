@@ -1,11 +1,14 @@
+import { TransactionHost } from '@nestjs-cls/transactional';
+import { TransactionalAdapterPrisma } from '@nestjs-cls/transactional-adapter-prisma';
 import { Injectable } from '@nestjs/common';
 import { Prisma } from '@prisma/client';
-import { PrismaService } from 'nestjs-prisma';
 import { getOrgIdFromStore } from 'src/common/utils/get-orgId';
 
 @Injectable()
 export class CommentsRepo {
-  constructor(private prisma: PrismaService) {}
+  constructor(
+    private readonly txHost: TransactionHost<TransactionalAdapterPrisma>,
+  ) {}
 
   createComment(args: {
     data: Omit<Prisma.CommentCreateInput, 'post'>;
@@ -13,7 +16,7 @@ export class CommentsRepo {
     authorConnect?: Prisma.UserWhereUniqueInput;
   }) {
     const orgId = getOrgIdFromStore();
-    return this.prisma.comment.create({
+    return this.txHost.tx.comment.create({
       data: {
         ...args.data,
         post: {
@@ -39,7 +42,7 @@ export class CommentsRepo {
     data: Prisma.CommentUpdateInput;
   }) {
     const orgId = getOrgIdFromStore();
-    return this.prisma.comment.update({
+    return this.txHost.tx.comment.update({
       where: {
         ...args.where,
         deletedAt: null,
@@ -58,7 +61,7 @@ export class CommentsRepo {
 
   deleteComment(args: { where: Prisma.CommentWhereUniqueInput }) {
     const orgId = getOrgIdFromStore();
-    return this.prisma.comment.update({
+    return this.txHost.tx.comment.update({
       where: {
         ...args.where,
         deletedAt: null,
@@ -80,7 +83,7 @@ export class CommentsRepo {
     skip?: number;
   }) {
     const orgId = getOrgIdFromStore();
-    return this.prisma.$transaction(async (tx) => {
+    return this.txHost.withTransaction(async () => {
       const postWhere = {
         ...args.where,
         deletedAt: null,
@@ -90,7 +93,7 @@ export class CommentsRepo {
       };
       return {
         comments: (
-          await tx.post.findFirst({
+          await this.txHost.tx.post.findFirst({
             where: postWhere,
             select: {
               comments: {
@@ -109,7 +112,7 @@ export class CommentsRepo {
             },
           })
         )?.comments,
-        total: await tx.comment.count({
+        total: await this.txHost.tx.comment.count({
           where: {
             post: postWhere,
             deletedAt: null,
@@ -121,7 +124,7 @@ export class CommentsRepo {
 
   getComment(args: { where: Prisma.CommentWhereUniqueInput }) {
     const orgId = getOrgIdFromStore();
-    return this.prisma.comment.findFirst({
+    return this.txHost.tx.comment.findFirst({
       where: { ...args.where, ...(orgId && { post: { orgId } }) },
       include: { author: true },
     });

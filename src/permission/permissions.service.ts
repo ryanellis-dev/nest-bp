@@ -65,15 +65,20 @@ export class PermissionsService {
         );
 
       case ResourceType.Comment:
-        const comment = await this.commentsRepo.getComment({
-          where: {
-            id: resourceId,
-          },
-        });
-        if (!comment) throw new NotFoundException();
+        const comment = resourceId
+          ? await this.commentsRepo.getComment({
+              where: {
+                id: resourceId,
+              },
+            })
+          : undefined;
+        if (comment === null) throw new NotFoundException();
 
-        this.setContext(permission, new Comment(comment));
-        return ability.can(permission.action, new Comment(comment));
+        comment && this.setContext(permission, new Comment(comment));
+        return ability.can(
+          permission.action,
+          comment ? new Comment(comment) : Comment,
+        );
 
       case ResourceType.Site:
         const site = resourceId

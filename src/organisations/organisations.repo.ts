@@ -1,19 +1,22 @@
+import { TransactionHost } from '@nestjs-cls/transactional';
+import { TransactionalAdapterPrisma } from '@nestjs-cls/transactional-adapter-prisma';
 import { Injectable } from '@nestjs/common';
 import { Prisma } from '@prisma/client';
-import { PrismaService } from 'nestjs-prisma';
 
 @Injectable()
 export class OrganisationsRepo {
-  constructor(private prisma: PrismaService) {}
+  constructor(
+    private readonly txHost: TransactionHost<TransactionalAdapterPrisma>,
+  ) {}
 
   async createOrganisation(args: { data: Prisma.OrganisationCreateInput }) {
-    return this.prisma.organisation.create({
+    return this.txHost.tx.organisation.create({
       data: args.data,
     });
   }
 
   async getOrganisation(args: { where: Prisma.OrganisationWhereInput }) {
-    return this.prisma.organisation.findFirst({
+    return this.txHost.tx.organisation.findFirst({
       where: args.where,
     });
   }

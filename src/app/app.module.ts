@@ -1,19 +1,9 @@
-import {
-  BadRequestException,
-  ConflictException,
-  HttpStatus,
-  Logger,
-  Module,
-  NotFoundException,
-} from '@nestjs/common';
+import { ClsPluginTransactional } from '@nestjs-cls/transactional';
+import { TransactionalAdapterPrisma } from '@nestjs-cls/transactional-adapter-prisma';
+import { Module } from '@nestjs/common';
 import { ConfigModule } from '@nestjs/config';
 import { ClsModule } from 'nestjs-cls';
 import { LoggerModule } from 'nestjs-pino';
-import {
-  PrismaModule,
-  loggingMiddleware,
-  providePrismaClientExceptionFilter,
-} from 'nestjs-prisma';
 import { AuthModule } from 'src/auth/auth.module';
 import { getPermissionsFromStore } from 'src/common/utils/get-permissions';
 import { getUserFromStore } from 'src/common/utils/get-user';
@@ -22,6 +12,8 @@ import { HealthModule } from 'src/health/health.module';
 import { OrganisationsModule } from 'src/organisations/organisations.module';
 import { PermissionsModule } from 'src/permission/permissions.module';
 import { CommentsModule } from 'src/posts/comments/comments.module';
+import { PrismaModule } from 'src/prisma/prisma.module';
+import { PrismaService } from 'src/prisma/prisma.service';
 import { SitesModule } from 'src/sites/sites.module';
 import { UsersModule } from 'src/users/users.module';
 import { PostsModule } from '../posts/posts.module';
@@ -48,18 +40,15 @@ import { PostsModule } from '../posts/posts.module';
     }),
     ClsModule.forRoot({
       global: true,
-      middleware: { mount: false },
-    }),
-    PrismaModule.forRoot({
-      isGlobal: true,
-      prismaServiceOptions: {
-        middlewares: [
-          loggingMiddleware({
-            logger: new Logger('PrismaMiddleware'),
-            logLevel: 'log',
+      plugins: [
+        new ClsPluginTransactional({
+          imports: [PrismaModule],
+          adapter: new TransactionalAdapterPrisma({
+            prismaInjectionToken: PrismaService,
+            sqlFlavor: 'postgresql',
           }),
-        ],
-      },
+        }),
+      ],
     }),
     HealthModule,
     AuthModule,
@@ -70,21 +59,6 @@ import { PostsModule } from '../posts/posts.module';
     CommentsModule,
     SitesModule,
   ],
-  providers: [
-    providePrismaClientExceptionFilter({
-      P2000: {
-        statusCode: HttpStatus.BAD_REQUEST,
-        errorMessage: new BadRequestException().message,
-      },
-      P2002: {
-        statusCode: HttpStatus.CONFLICT,
-        errorMessage: new ConflictException().message,
-      },
-      P2025: {
-        statusCode: HttpStatus.NOT_FOUND,
-        errorMessage: new NotFoundException().message,
-      },
-    }),
-  ],
+  providers: [],
 })
 export class AppModule {}

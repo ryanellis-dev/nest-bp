@@ -1,15 +1,18 @@
+import { TransactionHost } from '@nestjs-cls/transactional';
+import { TransactionalAdapterPrisma } from '@nestjs-cls/transactional-adapter-prisma';
 import { Injectable } from '@nestjs/common';
 import { Prisma } from '@prisma/client';
-import { PrismaService } from 'nestjs-prisma';
 import { getOrgIdFromStore } from 'src/common/utils/get-orgId';
 
 @Injectable()
 export class UsersRepo {
-  constructor(private prisma: PrismaService) {}
+  constructor(
+    private readonly txHost: TransactionHost<TransactionalAdapterPrisma>,
+  ) {}
 
   async createUser(args: { data: Prisma.UserCreateInput }) {
     const orgId = getOrgIdFromStore();
-    return this.prisma.user.create({
+    return this.txHost.tx.user.create({
       data: {
         ...args.data,
         ...(orgId && {
@@ -25,7 +28,7 @@ export class UsersRepo {
 
   async deleteUser(args: { where: Prisma.UserWhereUniqueInput }) {
     const orgId = getOrgIdFromStore();
-    return this.prisma.user.delete({
+    return this.txHost.tx.user.delete({
       where: {
         ...args.where,
         ...(orgId && {
@@ -41,7 +44,7 @@ export class UsersRepo {
 
   async getUser(args: { where: Prisma.UserWhereUniqueInput }) {
     const orgId = getOrgIdFromStore();
-    return this.prisma.user.findUnique({
+    return this.txHost.tx.user.findUnique({
       where: {
         ...args.where,
         ...(orgId && {
@@ -57,7 +60,7 @@ export class UsersRepo {
 
   async getLoggedInUser(args: { userId: string; orgId: string }) {
     // User / org context is unavailable in this method
-    return this.prisma.user.findFirst({
+    return this.txHost.tx.user.findFirst({
       where: {
         id: args.userId,
         organisations: {
@@ -92,9 +95,9 @@ export class UsersRepo {
         },
       }),
     };
-    return this.prisma.$transaction(async (tx) => {
+    return this.txHost.withTransaction(async () => {
       return {
-        users: await tx.user.findMany({
+        users: await this.txHost.tx.user.findMany({
           where,
           take: args.take,
           skip: args.skip,
@@ -102,7 +105,7 @@ export class UsersRepo {
             name: 'asc',
           },
         }),
-        total: await tx.user.count({ where }),
+        total: await this.txHost.tx.user.count({ where }),
       };
     });
   }
@@ -112,7 +115,7 @@ export class UsersRepo {
     data: Prisma.UserUpdateInput;
   }) {
     const orgId = getOrgIdFromStore();
-    return this.prisma.user.update({
+    return this.txHost.tx.user.update({
       where: {
         ...args.where,
         ...(orgId && {

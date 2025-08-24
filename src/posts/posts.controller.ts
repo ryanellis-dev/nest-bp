@@ -1,6 +1,5 @@
 import {
   Body,
-  Catch,
   Controller,
   Delete,
   Get,
@@ -10,7 +9,6 @@ import {
   Query,
 } from '@nestjs/common';
 import { ApiBearerAuth, ApiTags } from '@nestjs/swagger';
-import { PrismaClientExceptionFilter } from 'nestjs-prisma';
 import { Require } from 'src/common/decorators/require-permissions.decorator';
 import { PaginationQueryDto } from 'src/common/dto/pagination-query.dto';
 import { Action } from 'src/permission/model/action.model';
@@ -25,7 +23,6 @@ import { PostsService } from './posts.service';
 @ApiTags('posts')
 @ApiBearerAuth()
 @Controller('posts')
-@Catch(PrismaClientExceptionFilter)
 export class PostsController {
   constructor(private postsService: PostsService) {}
 

@@ -1,17 +1,20 @@
+import { TransactionHost } from '@nestjs-cls/transactional';
+import { TransactionalAdapterPrisma } from '@nestjs-cls/transactional-adapter-prisma';
 import { Injectable } from '@nestjs/common';
 import { Prisma } from '@prisma/client';
-import { PrismaService } from 'nestjs-prisma';
 import { getOrgIdFromStore } from 'src/common/utils/get-orgId';
 import { getUserFromStore } from 'src/common/utils/get-user';
 import { EnumOrgRole } from 'src/permission/model/org-role.model';
 
 @Injectable()
 export class PostsRepo {
-  constructor(private prisma: PrismaService) {}
+  constructor(
+    private readonly txHost: TransactionHost<TransactionalAdapterPrisma>,
+  ) {}
 
   createPost(args: { data: Prisma.PostCreateInput; includeAuthor?: boolean }) {
     const orgId = getOrgIdFromStore();
-    return this.prisma.post.create({
+    return this.txHost.tx.post.create({
       data: {
         ...args.data,
         ...(orgId && {
@@ -34,7 +37,7 @@ export class PostsRepo {
     includeAuthor?: boolean;
   }) {
     const orgId = getOrgIdFromStore();
-    return this.prisma.post.update({
+    return this.txHost.tx.post.update({
       where: { ...args.where, deletedAt: null },
       data: {
         ...args.data,
@@ -54,7 +57,7 @@ export class PostsRepo {
 
   async getPost(args: { where?: Prisma.PostWhereInput }) {
     const orgId = getOrgIdFromStore();
-    const post = await this.prisma.post.findFirst({
+    const post = await this.txHost.tx.post.findFirst({
       where: {
         ...args.where,
         deletedAt: null,
@@ -74,7 +77,7 @@ export class PostsRepo {
     userId: string;
   }) {
     const orgId = getOrgIdFromStore();
-    const post = await this.prisma.post.findFirst({
+    const post = await this.txHost.tx.post.findFirst({
       where: {
         ...args.where,
         deletedAt: null,
@@ -120,36 +123,36 @@ export class PostsRepo {
         }),
     };
 
-    const [posts, total] = await this.prisma.$transaction([
-      this.prisma.post.findMany({
-        where,
-        take: args.take,
-        skip: args.skip,
-        orderBy: {
-          createdAt: 'desc',
-        },
-        include: {
-          _count: { select: { comments: { where: { deletedAt: null } } } },
-          ...(args.includeUser &&
-            user && {
-              users: {
-                where: {
-                  userId: user.id,
+    return this.txHost.withTransaction(async () => {
+      return {
+        posts: await this.txHost.tx.post.findMany({
+          where,
+          take: args.take,
+          skip: args.skip,
+          orderBy: {
+            createdAt: 'desc',
+          },
+          include: {
+            _count: { select: { comments: { where: { deletedAt: null } } } },
+            ...(args.includeUser &&
+              user && {
+                users: {
+                  where: {
+                    userId: user.id,
+                  },
+                  select: {
+                    user: true,
+                    role: true,
+                  },
                 },
-                select: {
-                  user: true,
-                  role: true,
-                },
-              },
-            }),
-        },
-      }),
-      this.prisma.post.count({
-        where,
-      }),
-    ]);
-
-    return { posts, total };
+              }),
+          },
+        }),
+        total: await this.txHost.tx.post.count({
+          where,
+        }),
+      };
+    });
   }
 
   async getPostsWithRole(args: {
@@ -174,38 +177,38 @@ export class PostsRepo {
         }),
     };
 
-    const [posts, total] = await this.prisma.$transaction([
-      this.prisma.post.findMany({
-        where,
-        take: args.take,
-        skip: args.skip,
-        orderBy: {
-          createdAt: 'desc',
-        },
-        include: {
-          _count: { select: { comments: { where: { deletedAt: null } } } },
-          users: {
-            where: {
-              userId: args.userId,
-            },
-            select: {
-              userId: true,
-              role: true,
+    return this.txHost.withTransaction(async () => {
+      return {
+        posts: await this.txHost.tx.post.findMany({
+          where,
+          take: args.take,
+          skip: args.skip,
+          orderBy: {
+            createdAt: 'desc',
+          },
+          include: {
+            _count: { select: { comments: { where: { deletedAt: null } } } },
+            users: {
+              where: {
+                userId: args.userId,
+              },
+              select: {
+                userId: true,
+                role: true,
+              },
             },
           },
-        },
-      }),
-      this.prisma.post.count({
-        where,
-      }),
-    ]);
-
-    return { posts, total };
+        }),
+        total: await this.txHost.tx.post.count({
+          where,
+        }),
+      };
+    });
   }
 
   deletePost(args: { where: Prisma.PostWhereUniqueInput }) {
     const orgId = getOrgIdFromStore();
-    return this.prisma.post.update({
+    return this.txHost.tx.post.update({
       where: {
         ...args.where,
         deletedAt: null,
@@ -233,7 +236,7 @@ export class PostsRepo {
     userWhere: Prisma.UserWhereUniqueInput;
   }) {
     const orgId = getOrgIdFromStore();
-    const usersOnPosts = await this.prisma.usersOnPosts.findFirst({
+    const usersOnPosts = await this.txHost.tx.usersOnPosts.findFirst({
       where: {
         post: {
           ...args.postWhere,

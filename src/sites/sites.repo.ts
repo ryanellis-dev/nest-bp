@@ -1,12 +1,15 @@
+import { TransactionHost } from '@nestjs-cls/transactional';
+import { TransactionalAdapterPrisma } from '@nestjs-cls/transactional-adapter-prisma';
 import { Injectable } from '@nestjs/common';
 import { Prisma } from '@prisma/client';
-import { PrismaService } from 'nestjs-prisma';
 import { OrganisationRequiredException } from 'src/common/exceptions';
 import { getOrgIdFromStore } from 'src/common/utils/get-orgId';
 
 @Injectable()
 export class SitesRepo {
-  constructor(private prisma: PrismaService) {}
+  constructor(
+    private readonly txHost: TransactionHost<TransactionalAdapterPrisma>,
+  ) {}
 
   createSite(args: {
     data: Omit<Prisma.SiteCreateInput, 'organisation'>;
@@ -14,7 +17,7 @@ export class SitesRepo {
   }) {
     const orgId = args.orgId || getOrgIdFromStore();
     if (!orgId) throw new OrganisationRequiredException();
-    return this.prisma.site.create({
+    return this.txHost.tx.site.create({
       data: {
         ...args.data,
         organisation: {
@@ -31,7 +34,7 @@ export class SitesRepo {
     data: Omit<Prisma.SiteCreateInput, 'organisation'>;
   }) {
     const orgId = getOrgIdFromStore();
-    return this.prisma.site.update({
+    return this.txHost.tx.site.update({
       where: {
         ...args.where,
         ...(orgId && {
@@ -46,7 +49,7 @@ export class SitesRepo {
 
   getSite(args: { where: Prisma.SiteWhereInput }) {
     const orgId = getOrgIdFromStore();
-    return this.prisma.site.findFirst({
+    return this.txHost.tx.site.findFirst({
       where: {
         ...args.where,
         ...(orgId && {
@@ -60,7 +63,7 @@ export class SitesRepo {
 
   getSites() {
     const orgId = getOrgIdFromStore();
-    return this.prisma.site.findMany({
+    return this.txHost.tx.site.findMany({
       where: {
         ...(orgId && {
           orgId,
