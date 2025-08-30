@@ -1,5 +1,8 @@
-import { Body, Controller, Get, Post, Put } from '@nestjs/common';
+import { Body, Controller, Get, Post, Put, Query } from '@nestjs/common';
 import { ApiBearerAuth, ApiResponse, ApiTags } from '@nestjs/swagger';
+import { BypassAuth } from 'src/common/decorators/bypass-auth.decorator';
+import { PaginationQueryDto } from 'src/common/dto/pagination-query.dto';
+import { SearchQueryDto } from 'src/common/dto/search-query.dto';
 import { CreateOrganisationDto } from './dto/create-organisation.dto';
 import { UpdateCurrentOrgDto } from './dto/update-current-org.dto';
 import { Organisation } from './model/organisation.model';
@@ -15,6 +18,15 @@ export class OrganisationsController {
   @Post()
   createOrganisation(@Body() data: CreateOrganisationDto) {
     return this.organisationsService.createOrganisation(data);
+  }
+
+  @Get()
+  @BypassAuth()
+  getOrganisations(
+    @Query() pagination: PaginationQueryDto,
+    @Query() search: SearchQueryDto,
+  ) {
+    return this.organisationsService.getOrganisations(pagination, search);
   }
 
   @Get('/current')

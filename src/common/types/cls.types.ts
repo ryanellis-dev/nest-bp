@@ -1,4 +1,5 @@
 import { ClsStore } from 'nestjs-cls';
+import { AppAbility } from 'src/permission/casl/casl-ability.factory/casl-ability.factory';
 import { Permission } from 'src/permission/model/permission.model';
 import { LoggedInUser } from 'src/users/model/user.model';
 
@@ -7,4 +8,6 @@ export interface TypedClsStore extends ClsStore {
   user?: LoggedInUser | null;
 
   permissions?: { permission: Permission; resource: any }[];
+
+  ability?: AppAbility;
 }

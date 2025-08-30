@@ -1,4 +1,5 @@
 import { Expose } from 'class-transformer';
+import { Paginated } from 'src/common/model/paginated.model';
 
 export class Organisation {
   /**
@@ -11,4 +12,10 @@ export class Organisation {
    * @example "Delta"
    */
   @Expose() name: string;
+
+  constructor(partial: Partial<Organisation>) {
+    Object.assign(this, partial);
+  }
 }
+
+export class PaginatedOrganisations extends Paginated(Organisation) {}

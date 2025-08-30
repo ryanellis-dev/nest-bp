@@ -1,10 +1,15 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
+import { PaginationQueryDto } from 'src/common/dto/pagination-query.dto';
+import { SearchQueryDto } from 'src/common/dto/search-query.dto';
 import { getOrgIdFromStore } from 'src/common/utils/get-orgId';
 import { getUserOrThrow } from 'src/common/utils/get-user';
 import { UsersRepo } from 'src/users/users.repo';
 import { CreateOrganisationDto } from './dto/create-organisation.dto';
 import { UpdateCurrentOrgDto } from './dto/update-current-org.dto';
-import { Organisation } from './model/organisation.model';
+import {
+  Organisation,
+  PaginatedOrganisations,
+} from './model/organisation.model';
 import { OrganisationsRepo } from './organisations.repo';
 
 @Injectable()
@@ -16,6 +21,29 @@ export class OrganisationsService {
 
   async createOrganisation(data: CreateOrganisationDto): Promise<Organisation> {
     return this.organisationsRepo.createOrganisation({ data });
+  }
+
+  async getOrganisations(
+    { limit, offset }: PaginationQueryDto,
+    { search }: SearchQueryDto,
+  ): Promise<PaginatedOrganisations> {
+    const { organisations, total } =
+      await this.organisationsRepo.getOrganisations({
+        take: limit,
+        skip: offset,
+        where: {
+          name: {
+            contains: search,
+            mode: 'insensitive',
+          },
+        },
+      });
+    return {
+      results: organisations.map((o) => new Organisation(o)),
+      limit,
+      offset,
+      total,
+    };
   }
 
   async getCurrentOrganisation(): Promise<Organisation> {

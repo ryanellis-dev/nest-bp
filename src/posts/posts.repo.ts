@@ -1,7 +1,9 @@
+import { accessibleBy } from '@casl/prisma';
 import { TransactionHost } from '@nestjs-cls/transactional';
 import { TransactionalAdapterPrisma } from '@nestjs-cls/transactional-adapter-prisma';
 import { Injectable } from '@nestjs/common';
 import { Prisma } from '@prisma/client';
+import { getAbilityFromStore } from 'src/common/utils/get-ability';
 import { getOrgIdFromStore } from 'src/common/utils/get-orgId';
 import { getUserFromStore } from 'src/common/utils/get-user';
 import { EnumOrgRole } from 'src/permission/model/org-role.model';
@@ -109,18 +111,12 @@ export class PostsRepo {
   }) {
     const orgId = getOrgIdFromStore();
     const user = getUserFromStore();
+    const ability = getAbilityFromStore();
     const where = {
       ...args.where,
       deletedAt: null,
       ...(orgId && { orgId }),
-      ...(user &&
-        user.orgRole !== EnumOrgRole.Admin && {
-          users: {
-            some: {
-              userId: user.id,
-            },
-          },
-        }),
+      ...(ability && accessibleBy(ability).Post),
     };
 
     return this.txHost.withTransaction(async () => {
